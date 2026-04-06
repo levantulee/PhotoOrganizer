@@ -1,0 +1,8 @@
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\PhotoOrganizer.exe.config
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\PhotoOrganizer.exe
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\PhotoOrganizer.pdb
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Debug\PhotoOrganizer.csproj.AssemblyReference.cache
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Debug\PhotoOrganizer.csproj.SuggestedBindingRedirects.cache
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Debug\PhotoOrganizer.csproj.CoreCompileInputs.cache
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Debug\PhotoOrganizer.exe
+F:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Debug\PhotoOrganizer.pdb
