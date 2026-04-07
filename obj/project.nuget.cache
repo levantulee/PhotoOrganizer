@@ -1,0 +1,1017 @@
+{
+  "version": 2,
+  "dgSpecHash": "x3VMHY80ktg=",
+  "success": true,
+  "projectFilePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\levan\\.nuget\\packages\\ffmpegcore\\5.2.0\\ffmpegcore.5.2.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\imgui.net\\1.90.1.1\\imgui.net.1.90.1.1.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\instances\\3.0.1\\instances.3.0.1.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\magick.net-q16-anycpu\\13.10.0\\magick.net-q16-anycpu.13.10.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\magick.net.core\\13.10.0\\magick.net.core.13.10.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk\\4.9.3\\opentk.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.audio.openal\\4.9.3\\opentk.audio.openal.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.compute\\4.9.3\\opentk.compute.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.core\\4.9.3\\opentk.core.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.graphics\\4.9.3\\opentk.graphics.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.input\\4.9.3\\opentk.input.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.mathematics\\4.9.3\\opentk.mathematics.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.redist.glfw\\3.3.8.39\\opentk.redist.glfw.3.3.8.39.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.windowing.common\\4.9.3\\opentk.windowing.common.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.windowing.desktop\\4.9.3\\opentk.windowing.desktop.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\opentk.windowing.graphicslibraryframework\\4.9.3\\opentk.windowing.graphicslibraryframework.4.9.3.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.buffers\\4.4.0\\system.buffers.4.4.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.io.pipelines\\9.0.2\\system.io.pipelines.9.0.2.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.numerics.vectors\\4.4.0\\system.numerics.vectors.4.4.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.text.encodings.web\\9.0.2\\system.text.encodings.web.9.0.2.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\system.text.json\\9.0.2\\system.text.json.9.0.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-273h-m46v-96q4",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-2gq3-ww97-wfjm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-39h3-g67r-7g3c",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-3j4x-rwrx-xxj9",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-3mwp-xqp2-q6ph",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-3q5f-gmjc-38r8",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-42p5-62qq-mmh7",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-467j-76j7-5885",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-493f-jh8w-qhx3",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-543g-8grm-9cw6",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-56jp-jfqg-f8f4",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5ggv-92r5-cp4p",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5vx3-wx4q-6cj8",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-6hgw-6x87-578x",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-6hjr-v6g4-3fm8",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-6j5f-24fw-pqp4",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-6p22-q7w5-33pg",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-72hf-fj62-w6j4",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-7355-pwx2-pm84",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-782x-jh29-9mf7",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-7h7q-j33q-hvpf",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-7rvh-xqp3-pr8j",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8793-7xv6-82cf",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8jvj-p28h-9gm7",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8mpr-6xr2-chhc",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-932h-jw47-73jm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-96pc-27rx-pr36",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-9ccg-6pjw-x645",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9pp9-cfwx-54rm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-9r56-3gjq-hqf7",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9vj4-wc7r-p844",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-cfh4-9f7v-fhrc",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-cjc8-g9w8-chfw",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-cqw9-w2m7-r2m2",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-fh55-q5pj-pxgw",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-fpvf-frm6-625q",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-fwqw-2x5x-w566",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g2pr-qxjg-7r2w",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-gc62-2v5p-qpmp",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-gm37-qx7w-p258",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-gq5v-qf8q-fp77",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-gwr3-x37h-h84v",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-gxcx-qjqp-8vjw",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-h95r-c8c7-mrwx",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hffp-q43q-qq76",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-hm4x-r5hc-794f",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-jv4p-gjwq-9r2j",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-mqfc-82jx-3mr2",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-mrmj-x24c-wwcv",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-mw3m-pqr2-qv7c",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-mxvv-97wh-cfmm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-p27m-hp98-6637",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-p33r-fqw2-rqmm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-p863-5fgm-rgq4",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-pmq6-8289-hx3v",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-pqgj-2p96-rx85",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qh3h-j545-h8c9",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-qmw5-2p58-xvrc",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qp29-wxp5-wh82",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-qp59-x883-77qv",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-qpg4-j99f-8xcg",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-qpgx-jfcq-r59f",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-r39q-jr8h-gcq2",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-r99p-5442-q2x2",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-rqq8-jh93-f4vg",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-rw6c-xp26-225v",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v7g2-m8c5-mf84",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-v994-63cg-9wj3",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-vhqj-f5cj-9x8h",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-vmhh-8rxq-fp9g",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-vpxv-r9pg-7gpr",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-w8mw-frc6-r7m8",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-wfx3-6g53-9fgc",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-wg3g-gvx5-2pmv",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-wgxp-q8xq-wpp9",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wj8w-pjxf-9g4f",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-wrhr-rf8j-r842",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xg29-8ghv-v4xr",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xgm3-v4r9-wfgm",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-xpg8-7m6m-jf56",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xwc6-v6g8-pw2h",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xxw5-m53x-j38c",
+      "projectPath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows"
+      ]
+    }
+  ]
+}

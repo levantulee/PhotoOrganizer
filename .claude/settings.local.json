@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v '\\\\.json$')",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run:*)",
+      "Read(//c/Users/__TRACKED_VAR__/.nuget/packages/**)",
+      "Read(//c/Users/levan/.nuget/packages/ffmpegcore/**)",
+      "Bash(start \"\" \"bin/Debug/net8.0-windows/PhotoOrganizer.exe\")",
+      "Bash(tasklist)",
+      "Bash(cmd /c \"start /B bin\\\\\\\\Debug\\\\\\\\net8.0-windows\\\\\\\\PhotoOrganizer.exe\")",
+      "Bash(tasklist.exe)",
+      "Bash(kill %1)",
+      "Read(//tmp/**)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(grep -E '\\\\.\\(exe|dll\\)$')",
+      "Bash(./PhotoOrganizer.exe)",
+      "Bash(echo \"Exit: $?\")"
+    ]
+  }
+}
