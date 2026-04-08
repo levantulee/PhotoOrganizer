@@ -13,6 +13,8 @@ public class ProcessorOptions
     public bool IncludeSubfolders { get; set; } = true;
     public int Parallelism { get; set; } = Math.Max(1, Environment.ProcessorCount - 1);
     public bool InferMissingDates { get; set; } = true;
+    /// <summary>Source paths already successfully processed; these files are skipped.</summary>
+    public HashSet<string>? AlreadyProcessed { get; set; }
 }
 
 public class Processor
@@ -23,6 +25,12 @@ public class Processor
 
     // Gate: open = running, closed = paused. Active conversions finish; new ones block here.
     private readonly ManualResetEventSlim _pauseGate = new(true);
+
+    // Lazy per-folder inference cache: populated only when an unknown-date file is encountered.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, FileEntry[]>
+        _folderInferenceCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim>
+        _folderSemaphores = new(StringComparer.OrdinalIgnoreCase);
 
     public bool IsPaused => !_pauseGate.IsSet;
 
@@ -40,31 +48,85 @@ public class Processor
             .Where(f => !Path.GetExtension(f).Equals(".json", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        // Phase 1: resolve metadata for all files (needed before inference can run)
-        var entries = files
-            .Select(f => _metadata.Resolve(f))
-            .Where(e => e.Category != FileCategory.Unknown ||
-                        // still emit Unknown so they get logged as skipped in Phase 2
-                        true)
-            .ToList();
+        EmitInfo($"Processing {files.Count} files…");
 
-        // Phase 2: infer dates for unknown-date files from their dated neighbours
-        if (opts.InferMissingDates)
-            MetadataService.InferMissingDates(entries);
-
-        // Phase 3: convert / copy in parallel
-        await Parallel.ForEachAsync(entries,
+        // Resolve and convert each file on the fly. If a file has no date and inference is
+        // enabled, we lazily scan only that file's folder (once per folder) and infer.
+        await Parallel.ForEachAsync(files,
             new ParallelOptions { MaxDegreeOfParallelism = opts.Parallelism, CancellationToken = ct },
-            async (entry, token) =>
+            async (file, token) =>
             {
-                // Block here while paused; active conversions already in flight are unaffected.
                 _pauseGate.Wait(token);
                 token.ThrowIfCancellationRequested();
 
-                var result = await ProcessFileAsync(entry, opts, token);
-                Progress?.Invoke(result);
+                var entry = _metadata.Resolve(file);
+
+                if (entry.DateIsUnknown && opts.InferMissingDates)
+                    await TryInferDateFromFolderAsync(entry, token);
+
+                Progress?.Invoke(await ProcessFileAsync(entry, opts, token));
             });
     }
+
+    /// <summary>
+    /// Scans the folder of <paramref name="entry"/> (TopDirectoryOnly) exactly once,
+    /// runs date inference across all files in it, then copies the inferred date back
+    /// onto <paramref name="entry"/> if one was found.
+    /// Subsequent calls for the same folder use the cached result — no double work.
+    /// </summary>
+    private async ValueTask TryInferDateFromFolderAsync(FileEntry entry, CancellationToken ct)
+    {
+        var folder = Path.GetDirectoryName(entry.SourcePath) ?? "";
+
+        // Fast path: already cached
+        if (_folderInferenceCache.TryGetValue(folder, out var cached))
+        {
+            ApplyInferred(entry, cached);
+            return;
+        }
+
+        // One thread scans per folder; others wait then use the cache
+        var sem = _folderSemaphores.GetOrAdd(folder, _ => new SemaphoreSlim(1, 1));
+        await sem.WaitAsync(ct);
+        try
+        {
+            if (!_folderInferenceCache.TryGetValue(folder, out cached))
+            {
+                var folderEntries = Directory.EnumerateFiles(folder, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(f => !Path.GetExtension(f).Equals(".json", StringComparison.OrdinalIgnoreCase))
+                    .Select(f => _metadata.Resolve(f))
+                    .ToList();
+
+                MetadataService.InferMissingDates(folderEntries);
+                cached = folderEntries.ToArray();
+                _folderInferenceCache[folder] = cached;
+            }
+        }
+        finally { sem.Release(); }
+
+        ApplyInferred(entry, cached);
+    }
+
+    private static void ApplyInferred(FileEntry entry, FileEntry[] folderEntries)
+    {
+        var match = Array.Find(folderEntries,
+            e => string.Equals(e.SourcePath, entry.SourcePath, StringComparison.OrdinalIgnoreCase));
+
+        if (match?.DateIsEstimated == true)
+        {
+            entry.ResolvedDate    = match.ResolvedDate;
+            entry.DateIsUnknown   = false;
+            entry.DateIsEstimated = true;
+        }
+    }
+
+    private void EmitInfo(string message) =>
+        Progress?.Invoke(new ProcessResult
+        {
+            Entry   = new FileEntry(),
+            Status  = ResultStatus.Skipped,
+            Message = message
+        });
 
     private async Task<ProcessResult> ProcessFileAsync(FileEntry entry, ProcessorOptions opts, CancellationToken ct)
     {
@@ -72,6 +134,14 @@ public class Processor
         var result = new ProcessResult { Entry = entry };
         try
         {
+            // Skip if already processed successfully in a previous run
+            if (opts.AlreadyProcessed?.Contains(filePath) == true)
+            {
+                result.Status  = ResultStatus.Skipped;
+                result.Message = $"Already processed: {Path.GetFileName(filePath)}";
+                return result;
+            }
+
             if (entry.Category == FileCategory.Unknown)
             {
                 result.Status = ResultStatus.Skipped;
@@ -103,6 +173,19 @@ public class Processor
             }
             else
             {
+                var srcExt = Path.GetExtension(filePath).ToLowerInvariant();
+
+                if (srcExt == ".png")
+                {
+                    // PNG → PNG: straight copy, no re-encoding
+                    File.Copy(filePath, outputPath, overwrite: false);
+                    result.WasConverted = false;
+
+                    if (!IntegrityChecker.VerifyConvertedImage(outputPath))
+                        throw new Exception("PNG copy integrity check failed.");
+                }
+                else
+                {
                 // Image or HEIC — convert to PNG via Magick.NET
                 using var img = new MagickImage(filePath);
 
@@ -157,22 +240,12 @@ public class Processor
                               $"src={FmtBytes(rawExif)} png={FmtBytes(pngExif)} match={match}"
                 });
 
-                var srcExt = Path.GetExtension(filePath).ToLowerInvariant();
                 result.WasConverted = entry.Category == FileCategory.Heic
                     || srcExt is ".tif" or ".tiff";
 
-                // Verify
-                if (entry.Category == FileCategory.Image && !result.WasConverted)
-                {
-                    // For straight PNG copy (was PNG input): verify readable
-                    if (!IntegrityChecker.VerifyConvertedImage(outputPath))
-                        throw new Exception("Output image integrity check failed.");
-                }
-                else
-                {
-                    if (!IntegrityChecker.VerifyConvertedImage(outputPath))
-                        throw new Exception("Converted image integrity check failed.");
-                }
+                if (!IntegrityChecker.VerifyConvertedImage(outputPath))
+                    throw new Exception("Converted image integrity check failed.");
+                } // end Magick.NET branch
             }
 
             // 4. Move source (and any JSON sidecar) to Processed

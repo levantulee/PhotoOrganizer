@@ -80,6 +80,20 @@ public class ConversionLog : IDisposable
         }
     }
 
+    /// <summary>Returns all source paths that were previously processed successfully.</summary>
+    public HashSet<string> GetProcessedSourcePaths()
+    {
+        lock (_lock)
+        {
+            using var cmd = _conn.CreateCommand();
+            cmd.CommandText = "SELECT source_path FROM conversions WHERE status = 'Success'";
+            using var r = cmd.ExecuteReader();
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (r.Read()) set.Add(r.GetString(0));
+            return set;
+        }
+    }
+
     public void Purge()
     {
         lock (_lock)

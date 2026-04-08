@@ -34,6 +34,7 @@ public class AppWindow : Win32GameWindow
     private int _folderMode = 0;
     private bool _includeSubfolders = true;
     private bool _inferMissingDates = true;
+    private bool _skipProcessed = true;
     private static readonly int _maxCores = Environment.ProcessorCount;
     private int _coreCount = Math.Max(1, Math.Min(8, Environment.ProcessorCount - 1));
 
@@ -47,7 +48,7 @@ public class AppWindow : Win32GameWindow
     private CancellationTokenSource? _cts;
     private Processor? _processor;
     private readonly RunStats _stats = new();
-    private readonly List<(string text, ResultStatus status)> _log = new();
+    private readonly List<(string text, ResultStatus? status)> _log = new();
     private readonly object _logLock = new();
     private bool _autoScroll = true;
 
@@ -84,6 +85,7 @@ public class AppWindow : Win32GameWindow
             _folderMode        = s.FolderMode;
             _includeSubfolders = s.IncludeSubfolders;
             _inferMissingDates = s.InferMissingDates;
+            _skipProcessed     = s.SkipProcessed;
             _coreCount         = Math.Max(1, Math.Min(_maxCores, s.CoreCount));
         }
         catch { /* ignore corrupt settings */ }
@@ -104,6 +106,7 @@ public class AppWindow : Win32GameWindow
                 FolderMode      = _folderMode,
                 IncludeSubfolders  = _includeSubfolders,
                 InferMissingDates  = _inferMissingDates,
+                SkipProcessed      = _skipProcessed,
                 CoreCount          = _coreCount
             };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(s));
@@ -120,6 +123,7 @@ public class AppWindow : Win32GameWindow
         public int     FolderMode      { get; set; }
         public bool    IncludeSubfolders  { get; set; } = true;
         public bool    InferMissingDates  { get; set; } = true;
+        public bool    SkipProcessed      { get; set; } = true;
         public int     CoreCount          { get; set; } = 1;
     }
 
@@ -138,7 +142,7 @@ public class AppWindow : Win32GameWindow
         _onReady?.Invoke();
         StartupTimer.Log("OnLoad() done — window visible, background init starting");
 
-        AddLog("Initializing... (checking FFmpeg + GPU in background)", ResultStatus.Skipped);
+        AddLog("Initializing... (checking FFmpeg + GPU in background)", null);
 
         // Run slow startup ops off the UI thread so the window appears immediately
         Task.Run(async () =>
@@ -155,7 +159,7 @@ public class AppWindow : Win32GameWindow
                 catch (Exception ex)
                 {
                     StartupTimer.Log($"Background: OpenCL failed — {ex.Message}");
-                    AddLog("OpenCL not available — using CPU only.", ResultStatus.Skipped);
+                    AddLog("OpenCL not available — using CPU only.", null);
                 }
 
                 StartupTimer.Log("Background: FFmpeg check start");
@@ -300,6 +304,8 @@ public class AppWindow : Win32GameWindow
         ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
         ImGui.SameLine();
         ImGui.Checkbox("Infer missing dates from neighbours", ref _inferMissingDates);
+        ImGui.SameLine();
+        ImGui.Checkbox("Skip already-processed files", ref _skipProcessed);
         PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth,
             required: true);
         PathRow("Processed Folder:", "##processed", _processedFolder, "Select Processed Folder", labelCol, inputWidth, browseWidth,
@@ -417,17 +423,19 @@ public class AppWindow : Win32GameWindow
             int idx = 0;
             foreach (var (text, status) in _log)
             {
-                // Level filter
-                bool isExif = text.StartsWith("[EXIF", StringComparison.Ordinal);
-                if (isExif && !_filterExif) { idx++; continue; }
-                if (!isExif)
+                // null status = info/phase line — always shown, no prefix, grey
+                bool isInfo = status == null;
+                bool isExif = !isInfo && text.StartsWith("[EXIF", StringComparison.Ordinal);
+
+                if (!isInfo && !isExif)
                 {
                     if (status == ResultStatus.Success && !_filterOk)   { idx++; continue; }
                     if (status == ResultStatus.Skipped && !_filterSkip) { idx++; continue; }
                     if (status == ResultStatus.Failed  && !_filterErr)  { idx++; continue; }
                 }
+                if (isExif && !_filterExif) { idx++; continue; }
 
-                string prefix = status switch
+                string prefix = isInfo ? "--- " : status switch
                 {
                     ResultStatus.Success => "[OK] ",
                     ResultStatus.Skipped => "[!!] ",
@@ -443,7 +451,7 @@ public class AppWindow : Win32GameWindow
                     continue;
                 }
 
-                SysVec4 color = status switch
+                SysVec4 color = isInfo ? new SysVec4(0.55f, 0.55f, 0.55f, 1f) : status switch
                 {
                     ResultStatus.Success => new SysVec4(0.4f, 1f, 0.4f, 1f),
                     ResultStatus.Skipped => new SysVec4(1f, 0.8f, 0.2f, 1f),
@@ -556,15 +564,22 @@ public class AppWindow : Win32GameWindow
         lock (_logLock) _log.Clear();
         AddLog($"Starting... Source: {source}", ResultStatus.Success);
 
+        var alreadyProcessed = _skipProcessed
+            ? _convLog?.GetProcessedSourcePaths()
+            : null;
+        if (alreadyProcessed?.Count > 0)
+            AddLog($"Skip-duplicates: {alreadyProcessed.Count} previously processed files on record.", null);
+
         var opts = new ProcessorOptions
         {
-            SourceFolder = source,
-            ExportFolder = export,
-            ProcessedFolder = processed,
-            FailedFolder = failed,
+            SourceFolder      = source,
+            ExportFolder      = export,
+            ProcessedFolder   = processed,
+            FailedFolder      = failed,
             FolderMode        = _folderMode == 0 ? FileOrganizer.FolderMode.YearMonth : FileOrganizer.FolderMode.YearOnly,
             IncludeSubfolders = _includeSubfolders,
             InferMissingDates = _inferMissingDates,
+            AlreadyProcessed  = alreadyProcessed,
             Parallelism       = _coreCount
         };
 
@@ -581,7 +596,7 @@ public class AppWindow : Win32GameWindow
             }
             catch (OperationCanceledException)
             {
-                AddLog("Stopped by user.", ResultStatus.Skipped);
+                AddLog("Stopped by user.", null);
             }
             catch (Exception ex)
             {
@@ -597,9 +612,10 @@ public class AppWindow : Win32GameWindow
 
     private void StopProcessing()
     {
-        // If paused, open the gate first so blocked tasks can observe cancellation
+        // Open the gate first so paused tasks can observe cancellation immediately
         _processor?.Resume();
-        _isPaused = false;
+        _isPaused  = false;
+        _isRunning = false;  // immediate UI feedback; the background task cleans up the rest
         _cts?.Cancel();
     }
 
@@ -607,14 +623,14 @@ public class AppWindow : Win32GameWindow
     {
         _isPaused = true;
         _processor?.Pause();
-        AddLog("Paused — active conversions will finish.", ResultStatus.Skipped);
+        AddLog("Paused — active conversions will finish.", null);
     }
 
     private void ResumeProcessing()
     {
         _isPaused = false;
         _processor?.Resume();
-        AddLog("Resumed.", ResultStatus.Skipped);
+        AddLog("Resumed.", null);
     }
 
     /// <summary>
@@ -650,6 +666,14 @@ public class AppWindow : Win32GameWindow
 
     private void OnProgress(ProcessResult result)
     {
+        // Info events (no source path) are phase announcements from the processor — log as
+        // neutral text only, don't touch stats or DB.
+        if (string.IsNullOrEmpty(result.Entry.SourcePath))
+        {
+            AddLog(result.Message, null);
+            return;
+        }
+
         lock (_logLock)
         {
             switch (result.Status)
@@ -686,7 +710,15 @@ public class AppWindow : Win32GameWindow
 
         AddLog(prefix + result.Message, displayStatus);
 
-        if (result.Status is ResultStatus.Success or ResultStatus.Failed)
+        // Log real file outcomes to history DB.
+        // Exclude: EXIF diagnostic events (internal, no real output path),
+        //          already-processed skips (already in DB with Success status).
+        bool isExifDiag       = result.Message.StartsWith("[EXIF", StringComparison.Ordinal);
+        bool isAlreadySkipped = result.Message.StartsWith("Already processed:", StringComparison.Ordinal);
+        bool hasSourcePath    = !string.IsNullOrEmpty(result.Entry.SourcePath);
+
+        if (hasSourcePath && !isExifDiag && !isAlreadySkipped &&
+            result.Status is ResultStatus.Success or ResultStatus.Failed or ResultStatus.Skipped)
         {
             _convLog?.Log(result.Entry.SourcePath, result.OutputPath,
                           result.Entry.Category, result.Status);
@@ -694,7 +726,7 @@ public class AppWindow : Win32GameWindow
         }
     }
 
-    private void AddLog(string text, ResultStatus status)
+    private void AddLog(string text, ResultStatus? status)
     {
         lock (_logLock) _log.Add((text, status));
     }
