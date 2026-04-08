@@ -12,6 +12,7 @@ public class ProcessorOptions
     public FileOrganizer.FolderMode FolderMode { get; set; } = FileOrganizer.FolderMode.YearMonth;
     public bool IncludeSubfolders { get; set; } = true;
     public int Parallelism { get; set; } = Math.Max(1, Environment.ProcessorCount - 1);
+    public bool InferMissingDates { get; set; } = true;
 }
 
 public class Processor
@@ -19,6 +20,14 @@ public class Processor
     private readonly MetadataService _metadata = new();
     private readonly FileOrganizer _organizer = new();
     private readonly VideoConverter _video = new();
+
+    // Gate: open = running, closed = paused. Active conversions finish; new ones block here.
+    private readonly ManualResetEventSlim _pauseGate = new(true);
+
+    public bool IsPaused => !_pauseGate.IsSet;
+
+    public void Pause()  => _pauseGate.Reset();
+    public void Resume() => _pauseGate.Set();
 
     public event Action<ProcessResult>? Progress;
 
@@ -31,24 +40,38 @@ public class Processor
             .Where(f => !Path.GetExtension(f).Equals(".json", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        await Parallel.ForEachAsync(files,
+        // Phase 1: resolve metadata for all files (needed before inference can run)
+        var entries = files
+            .Select(f => _metadata.Resolve(f))
+            .Where(e => e.Category != FileCategory.Unknown ||
+                        // still emit Unknown so they get logged as skipped in Phase 2
+                        true)
+            .ToList();
+
+        // Phase 2: infer dates for unknown-date files from their dated neighbours
+        if (opts.InferMissingDates)
+            MetadataService.InferMissingDates(entries);
+
+        // Phase 3: convert / copy in parallel
+        await Parallel.ForEachAsync(entries,
             new ParallelOptions { MaxDegreeOfParallelism = opts.Parallelism, CancellationToken = ct },
-            async (file, token) =>
+            async (entry, token) =>
             {
-                var result = await ProcessFileAsync(file, opts, token);
+                // Block here while paused; active conversions already in flight are unaffected.
+                _pauseGate.Wait(token);
+                token.ThrowIfCancellationRequested();
+
+                var result = await ProcessFileAsync(entry, opts, token);
                 Progress?.Invoke(result);
             });
     }
 
-    private async Task<ProcessResult> ProcessFileAsync(string filePath, ProcessorOptions opts, CancellationToken ct)
+    private async Task<ProcessResult> ProcessFileAsync(FileEntry entry, ProcessorOptions opts, CancellationToken ct)
     {
-        var result = new ProcessResult();
+        var filePath = entry.SourcePath;
+        var result = new ProcessResult { Entry = entry };
         try
         {
-            // 1. Classify & resolve metadata
-            var entry = _metadata.Resolve(filePath);
-            result.Entry = entry;
-
             if (entry.Category == FileCategory.Unknown)
             {
                 result.Status = ResultStatus.Skipped;
@@ -134,7 +157,9 @@ public class Processor
                               $"src={FmtBytes(rawExif)} png={FmtBytes(pngExif)} match={match}"
                 });
 
-                result.WasConverted = entry.Category == FileCategory.Heic;
+                var srcExt = Path.GetExtension(filePath).ToLowerInvariant();
+                result.WasConverted = entry.Category == FileCategory.Heic
+                    || srcExt is ".tif" or ".tiff";
 
                 // Verify
                 if (entry.Category == FileCategory.Image && !result.WasConverted)
@@ -175,13 +200,16 @@ public class Processor
     {
         var outName = Path.GetFileName(outputPath);
         var srcName = Path.GetFileName(entry.SourcePath);
+        var srcExtLower = Path.GetExtension(entry.SourcePath).ToLowerInvariant();
         string suffix = entry.Category switch
         {
             FileCategory.Heic => " (heic→png)",
             FileCategory.Video => " (conv)",
+            FileCategory.Image when srcExtLower is ".tif" or ".tiff" => " (tiff→png)",
             _ => ""
         };
-        string dateTag = entry.DateIsUnknown ? " ⚠ no date" : "";
+        string dateTag = entry.DateIsUnknown   ? " ⚠ no date"   :
+                         entry.DateIsEstimated ? " ~ est. date" : "";
         return $"{outName}  ←  {srcName}{suffix}{dateTag}";
     }
 

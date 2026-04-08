@@ -1,0 +1,3 @@
+D:\Dev_own\PhotoOrganizer\dist\PhotoOrganizer.pdb
+D:\Dev_own\PhotoOrganizer\dist\PhotoOrganizer.dll.config
+D:\Dev_own\PhotoOrganizer\dist\PhotoOrganizer.exe

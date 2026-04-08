@@ -134,6 +134,7 @@ public class ImGuiController : IDisposable
         var io = ImGui.GetIO();
         io.Fonts.AddFontDefault();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+        io.ConfigFlags  |= ImGuiConfigFlags.DockingEnable;
 
         io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_getClipboardDelegate);
         io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_setClipboardDelegate);

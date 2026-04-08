@@ -29,23 +29,26 @@ static class Program
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
-            MessageBox.Show(e.ExceptionObject?.ToString() ?? "Unknown error",
-                "Unhandled Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            var msg = e.ExceptionObject?.ToString() ?? "Unknown error";
+            StartupTimer.Log($"UnhandledException: {msg}");
+            splash?.CloseSplash();
+            MessageBox.Show(msg, "Unhandled Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
         };
 
         try
         {
             StartupTimer.Log("new AppWindow()...");
-            using var window = new AppWindow();
+            // Pass the splash-close callback so the window dismisses it after OnLoad(),
+            // i.e. once the GL context + ImGui are ready and the first frame is about to render.
+            using var window = new AppWindow(onReady: () => splash?.CloseSplash());
 
-            splash?.CloseSplash();
-            StartupTimer.Log("Splash closed, window.Run()...");
-
+            StartupTimer.Log("Starting window.Run()...");
             window.Run();
             StartupTimer.Log("window.Run() returned");
         }
         catch (Exception ex)
         {
+            StartupTimer.LogException("Main", ex);
             splash?.CloseSplash();
             MessageBox.Show(
                 $"{ex.GetType().Name}:\n\n{ex.Message}\n\n{ex.StackTrace}",

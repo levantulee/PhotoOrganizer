@@ -87,12 +87,66 @@ public class MetadataService
         return entry;
     }
 
+    /// <summary>
+    /// For every entry whose date is unknown, looks at the nearest files (by filename sort order)
+    /// in the same directory that DO have a date, then interpolates. Files bracketed between two
+    /// dated neighbours get the midpoint; files at the start/end of a sequence get the neighbour's date.
+    /// Entries that cannot be bracketed at all (the whole directory has no dates) stay unknown.
+    /// </summary>
+    public static void InferMissingDates(List<FileEntry> entries)
+    {
+        var byDir = entries
+            .GroupBy(e => Path.GetDirectoryName(e.SourcePath) ?? "",
+                     StringComparer.OrdinalIgnoreCase);
+
+        foreach (var group in byDir)
+        {
+            var sorted = group
+                .OrderBy(e => Path.GetFileName(e.SourcePath), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (!sorted.Any(e => !e.DateIsUnknown && e.ResolvedDate.HasValue))
+                continue; // whole directory is undated — nothing to infer from
+
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var entry = sorted[i];
+                if (!entry.DateIsUnknown) continue;
+
+                // Nearest dated file before this one (by filename sort)
+                DateTime? before = null;
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    if (!sorted[j].DateIsUnknown && sorted[j].ResolvedDate.HasValue)
+                    { before = sorted[j].ResolvedDate; break; }
+                }
+
+                // Nearest dated file after this one
+                DateTime? after = null;
+                for (int j = i + 1; j < sorted.Count; j++)
+                {
+                    if (!sorted[j].DateIsUnknown && sorted[j].ResolvedDate.HasValue)
+                    { after = sorted[j].ResolvedDate; break; }
+                }
+
+                if (!before.HasValue && !after.HasValue) continue;
+
+                entry.ResolvedDate = (before.HasValue && after.HasValue)
+                    ? new DateTime((before.Value.Ticks + after.Value.Ticks) / 2) // midpoint
+                    : (before ?? after)!.Value;                                   // nearest
+
+                entry.DateIsUnknown   = false;
+                entry.DateIsEstimated = true;
+            }
+        }
+    }
+
     public static FileCategory ClassifyFile(string filePath)
     {
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         return ext switch
         {
-            ".jpg" or ".jpeg" or ".png" => FileCategory.Image,
+            ".jpg" or ".jpeg" or ".png" or ".tif" or ".tiff" => FileCategory.Image,
             ".heic" or ".heif" => FileCategory.Heic,
             ".mov" or ".mp4" or ".avi" or ".mkv" or ".3gp" => FileCategory.Video,
             _ => FileCategory.Unknown
