@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL4;
 using PhotoOrganizer.Core;
@@ -10,6 +11,11 @@ namespace PhotoOrganizer.UI;
 public class AppWindow : Win32GameWindow
 {
     private ImGuiController _imGui = null!;
+    private ConversionLog? _convLog;
+
+    // History tab state
+    private List<ConversionLog.Entry> _history = new();
+    private bool _historyLoaded = false;
 
     // UI state — folder paths
     private byte[] _sourceFolder = new byte[1024];
@@ -23,6 +29,10 @@ public class AppWindow : Win32GameWindow
     private static readonly int _maxCores = Environment.ProcessorCount;
     private int _coreCount = Math.Max(1, Math.Min(8, Environment.ProcessorCount - 1));
 
+    // Log search / selection
+    private byte[] _logFilter = new byte[256];
+    private int _selectedLogLine = -1;
+
     // Processing state
     private bool _isRunning = false;
     private CancellationTokenSource? _cts;
@@ -34,15 +44,63 @@ public class AppWindow : Win32GameWindow
     public AppWindow()
     {
         StartupTimer.Log("AppWindow ctor done");
-        SetDefaultPaths();
+        try { _convLog = new ConversionLog(); } catch { /* DB unavailable */ }
+        LoadSettings();
     }
 
-    private void SetDefaultPaths()
+    private static string SettingsPath =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                     "PhotoOrganizer", "settings.json");
+
+    private void LoadSettings()
     {
-        WriteString(_sourceFolder, "");
-        WriteString(_exportFolder, "");
-        WriteString(_processedFolder, "");
-        WriteString(_failedFolder, "");
+        try
+        {
+            if (!File.Exists(SettingsPath)) return;
+            var json = File.ReadAllText(SettingsPath);
+            var s = JsonSerializer.Deserialize<AppSettings>(json);
+            if (s == null) return;
+            WriteString(_sourceFolder,    s.SourceFolder    ?? "");
+            WriteString(_exportFolder,    s.ExportFolder    ?? "");
+            WriteString(_processedFolder, s.ProcessedFolder ?? "");
+            WriteString(_failedFolder,    s.FailedFolder    ?? "");
+            _folderMode        = s.FolderMode;
+            _includeSubfolders = s.IncludeSubfolders;
+            _coreCount         = Math.Max(1, Math.Min(_maxCores, s.CoreCount));
+        }
+        catch { /* ignore corrupt settings */ }
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(SettingsPath)!;
+            Directory.CreateDirectory(dir);
+            var s = new AppSettings
+            {
+                SourceFolder    = ReadString(_sourceFolder),
+                ExportFolder    = ReadString(_exportFolder),
+                ProcessedFolder = ReadString(_processedFolder),
+                FailedFolder    = ReadString(_failedFolder),
+                FolderMode      = _folderMode,
+                IncludeSubfolders = _includeSubfolders,
+                CoreCount       = _coreCount
+            };
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(s));
+        }
+        catch { /* ignore write failures */ }
+    }
+
+    private sealed class AppSettings
+    {
+        public string? SourceFolder    { get; set; }
+        public string? ExportFolder    { get; set; }
+        public string? ProcessedFolder { get; set; }
+        public string? FailedFolder    { get; set; }
+        public int     FolderMode      { get; set; }
+        public bool    IncludeSubfolders { get; set; } = true;
+        public int     CoreCount       { get; set; } = 1;
     }
 
     protected override void OnLoad()
@@ -62,28 +120,36 @@ public class AppWindow : Win32GameWindow
         // Run slow startup ops off the UI thread so the window appears immediately
         Task.Run(async () =>
         {
-            StartupTimer.Log("Background: OpenCL start");
             try
             {
-                ImageMagick.OpenCL.IsEnabled = true;
-                StartupTimer.Log("Background: OpenCL done");
-                AddLog("OpenCL GPU acceleration enabled.", ResultStatus.Success);
+                StartupTimer.Log("Background: OpenCL start");
+                try
+                {
+                    ImageMagick.OpenCL.IsEnabled = true;
+                    StartupTimer.Log("Background: OpenCL done");
+                    AddLog("OpenCL GPU acceleration enabled.", ResultStatus.Success);
+                }
+                catch (Exception ex)
+                {
+                    StartupTimer.Log($"Background: OpenCL failed — {ex.Message}");
+                    AddLog("OpenCL not available — using CPU only.", ResultStatus.Skipped);
+                }
+
+                StartupTimer.Log("Background: FFmpeg check start");
+                bool ffmpeg = await VideoConverter.CheckFfmpegAsync();
+                StartupTimer.Log($"Background: FFmpeg check done — found={ffmpeg}");
+                AddLog(ffmpeg
+                    ? "FFmpeg found. Video conversion enabled."
+                    : "FFmpeg not found — video conversion disabled. Install FFmpeg and add to PATH.",
+                    ffmpeg ? ResultStatus.Success : ResultStatus.Failed);
+
+                StartupTimer.Log("Background: all init complete");
             }
-            catch
+            catch (Exception ex)
             {
-                StartupTimer.Log("Background: OpenCL failed");
-                AddLog("OpenCL not available — using CPU only.", ResultStatus.Skipped);
+                StartupTimer.Log($"Background: unhandled error — {ex}");
+                AddLog($"Init error: {ex.Message}", ResultStatus.Failed);
             }
-
-            StartupTimer.Log("Background: FFmpeg check start");
-            bool ffmpeg = await VideoConverter.CheckFfmpegAsync();
-            StartupTimer.Log($"Background: FFmpeg check done — found={ffmpeg}");
-            AddLog(ffmpeg
-                ? "FFmpeg found. Video conversion enabled."
-                : "FFmpeg not found — video conversion disabled. Install FFmpeg and add to PATH.",
-                ffmpeg ? ResultStatus.Success : ResultStatus.Failed);
-
-            StartupTimer.Log("Background: all init complete");
         });
     }
 
@@ -112,7 +178,9 @@ public class AppWindow : Win32GameWindow
 
     protected override void OnUnload()
     {
+        SaveSettings();
         _cts?.Cancel();
+        _convLog?.Dispose();
         _imGui.Dispose();
         base.OnUnload();
     }
@@ -131,6 +199,31 @@ public class AppWindow : Win32GameWindow
 
         ImGui.TextColored(new SysVec4(0.4f, 0.8f, 1f, 1f), "PhotoOrganizer");
         ImGui.Separator();
+
+        if (ImGui.BeginTabBar("##tabs"))
+        {
+            if (ImGui.BeginTabItem("Processing"))
+            {
+                BuildProcessingTab();
+                ImGui.EndTabItem();
+            }
+            if (ImGui.BeginTabItem("History"))
+            {
+                BuildHistoryTab();
+                ImGui.EndTabItem();
+            }
+            else
+            {
+                _historyLoaded = false; // reset so it reloads next time tab opens
+            }
+            ImGui.EndTabBar();
+        }
+
+        ImGui.End();
+    }
+
+    private void BuildProcessingTab()
+    {
         ImGui.Spacing();
 
         float labelCol = 130f;
@@ -138,12 +231,16 @@ public class AppWindow : Win32GameWindow
         float spacing = ImGui.GetStyle().ItemSpacing.X;
         float inputWidth = ImGui.GetContentRegionAvail().X - labelCol - browseWidth - spacing * 2;
 
-        PathRow("Source Folder:",    "##source",    _sourceFolder,    "Select Source Folder",    labelCol, inputWidth, browseWidth);
+        PathRow("Source Folder:",    "##source",    _sourceFolder,    "Select Source Folder",    labelCol, inputWidth, browseWidth,
+            required: true);
         ImGui.SetCursorPosX(labelCol);
         ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
-        PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth);
-        PathRow("Processed Folder:", "##processed", _processedFolder, "Select Processed Folder", labelCol, inputWidth, browseWidth);
-        PathRow("Failed Folder:",    "##failed",    _failedFolder,    "Select Failed Folder",    labelCol, inputWidth, browseWidth);
+        PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth,
+            required: true);
+        PathRow("Processed Folder:", "##processed", _processedFolder, "Select Processed Folder", labelCol, inputWidth, browseWidth,
+            required: false);
+        PathRow("Failed Folder:",    "##failed",    _failedFolder,    "Select Failed Folder",    labelCol, inputWidth, browseWidth,
+            required: false);
 
         ImGui.Spacing();
 
@@ -167,7 +264,7 @@ public class AppWindow : Win32GameWindow
         ImGui.Spacing();
 
         // Start / Stop
-        bool canStart = !_isRunning && !string.IsNullOrWhiteSpace(ReadString(_sourceFolder));
+        bool canStart = !_isRunning && ValidateFolders(out _);
         if (!canStart) ImGui.BeginDisabled();
         if (ImGui.Button("  Start  "))
             StartProcessing();
@@ -207,29 +304,66 @@ public class AppWindow : Win32GameWindow
 
         ImGui.Separator();
 
-        // Log window
-        float logHeight = ImGui.GetContentRegionAvail().Y - 8;
-        ImGui.BeginChild("##log", new SysVec2(0, logHeight), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
+        // ── Log filter bar ────────────────────────────────────────────────────
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 130f);
+        ImGui.InputText("##logfilter", _logFilter, (uint)_logFilter.Length);
+        ImGui.SameLine();
+        if (ImGui.Button("Clear##filter"))
+        {
+            Array.Clear(_logFilter, 0, _logFilter.Length);
+            _selectedLogLine = -1;
+        }
+        ImGui.SameLine();
+        ImGui.Checkbox("Auto-scroll", ref _autoScroll);
+
+        // ── Log lines ─────────────────────────────────────────────────────────
+        float logHeight = ImGui.GetContentRegionAvail().Y - 4;
+        ImGui.BeginChild("##log", new SysVec2(0, logHeight), ImGuiChildFlags.Border,
+            ImGuiWindowFlags.HorizontalScrollbar);
+
+        string filter = ReadString(_logFilter).Trim();
 
         lock (_logLock)
         {
+            int idx = 0;
             foreach (var (text, status) in _log)
             {
-                SysVec4 color = status switch
-                {
-                    ResultStatus.Success => new SysVec4(0.4f, 1f, 0.4f, 1f),
-                    ResultStatus.Skipped => new SysVec4(1f, 0.8f, 0.2f, 1f),
-                    ResultStatus.Failed => new SysVec4(1f, 0.3f, 0.3f, 1f),
-                    _ => new SysVec4(0.8f, 0.8f, 0.8f, 1f)
-                };
                 string prefix = status switch
                 {
                     ResultStatus.Success => "[OK] ",
                     ResultStatus.Skipped => "[!!] ",
-                    ResultStatus.Failed => "[XX] ",
-                    _ => "     "
+                    ResultStatus.Failed  => "[XX] ",
+                    _                   => "     "
                 };
-                ImGui.TextColored(color, prefix + text);
+                string line = prefix + text;
+
+                if (filter.Length > 0 &&
+                    !line.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                {
+                    idx++;
+                    continue;
+                }
+
+                SysVec4 color = status switch
+                {
+                    ResultStatus.Success => new SysVec4(0.4f, 1f, 0.4f, 1f),
+                    ResultStatus.Skipped => new SysVec4(1f, 0.8f, 0.2f, 1f),
+                    ResultStatus.Failed  => new SysVec4(1f, 0.3f, 0.3f, 1f),
+                    _                   => new SysVec4(0.8f, 0.8f, 0.8f, 1f)
+                };
+
+                ImGui.PushID(idx);
+                ImGui.PushStyleColor(ImGuiCol.Text, color);
+                if (ImGui.Selectable(line, _selectedLogLine == idx,
+                    ImGuiSelectableFlags.SpanAllColumns))
+                {
+                    _selectedLogLine = idx;
+                    ImGui.SetClipboardText(line);
+                }
+                ImGui.PopStyleColor();
+                ImGui.PopID();
+
+                idx++;
             }
         }
 
@@ -237,7 +371,69 @@ public class AppWindow : Win32GameWindow
             ImGui.SetScrollHereY(1.0f);
 
         ImGui.EndChild();
-        ImGui.End();
+    }
+
+    private void BuildHistoryTab()
+    {
+        if (!_historyLoaded)
+        {
+            _history = _convLog?.GetRecent() ?? new();
+            _historyLoaded = true;
+        }
+
+        ImGui.Spacing();
+        ImGui.Text($"{_history.Count} entries");
+        ImGui.SameLine();
+        if (ImGui.Button("Refresh"))
+        {
+            _history = _convLog?.GetRecent() ?? new();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Purge All"))
+        {
+            _convLog?.Purge();
+            _history = new();
+        }
+        ImGui.Separator();
+
+        float tableHeight = ImGui.GetContentRegionAvail().Y - 4;
+        if (ImGui.BeginTable("##history", 4,
+            ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg |
+            ImGuiTableFlags.ScrollY | ImGuiTableFlags.Resizable,
+            new SysVec2(0, tableHeight)))
+        {
+            ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableSetupColumn("Time",   ImGuiTableColumnFlags.WidthFixed,   140f);
+            ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthFixed,    50f);
+            ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch, 1f);
+            ImGui.TableSetupColumn("Output", ImGuiTableColumnFlags.WidthStretch, 1f);
+            ImGui.TableHeadersRow();
+
+            foreach (var e in _history)
+            {
+                ImGui.TableNextRow();
+
+                ImGui.TableSetColumnIndex(0);
+                ImGui.TextUnformatted(e.ConvertedAt);
+
+                ImGui.TableSetColumnIndex(1);
+                var (color, label) = e.Status switch
+                {
+                    "Success" => (new SysVec4(0.4f, 1f, 0.4f, 1f), "OK"),
+                    "Failed"  => (new SysVec4(1f, 0.3f, 0.3f, 1f), "FAIL"),
+                    _         => (new SysVec4(1f, 0.8f, 0.2f, 1f), "SKIP"),
+                };
+                ImGui.TextColored(color, label);
+
+                ImGui.TableSetColumnIndex(2);
+                ImGui.TextUnformatted(Path.GetFileName(e.SourcePath));
+
+                ImGui.TableSetColumnIndex(3);
+                ImGui.TextUnformatted(Path.GetFileName(e.OutputPath));
+            }
+
+            ImGui.EndTable();
+        }
     }
 
     private void StartProcessing()
@@ -247,14 +443,10 @@ public class AppWindow : Win32GameWindow
         var processed = ReadString(_processedFolder);
         var failed = ReadString(_failedFolder);
 
-        if (string.IsNullOrWhiteSpace(source) || !Directory.Exists(source))
+        if (!ValidateFolders(out var errors))
         {
-            AddLog("Source folder does not exist.", ResultStatus.Failed);
-            return;
-        }
-        if (string.IsNullOrWhiteSpace(export))
-        {
-            AddLog("Export folder is required.", ResultStatus.Failed);
+            foreach (var e in errors)
+                AddLog(e, ResultStatus.Failed);
             return;
         }
 
@@ -301,9 +493,37 @@ public class AppWindow : Win32GameWindow
         }, ct);
     }
 
-    private void StopProcessing()
+    private void StopProcessing() => _cts?.Cancel();
+
+    /// <summary>
+    /// Validates all configured folder paths.
+    /// Source must be set and exist.
+    /// Export must be set (created at runtime, no existence check).
+    /// Processed / Failed: optional — if set, must exist.
+    /// </summary>
+    private bool ValidateFolders(out List<string> errors)
     {
-        _cts?.Cancel();
+        errors = new();
+        var source    = ReadString(_sourceFolder);
+        var export    = ReadString(_exportFolder);
+        var processed = ReadString(_processedFolder);
+        var failed    = ReadString(_failedFolder);
+
+        if (string.IsNullOrWhiteSpace(source))
+            errors.Add("Source folder is required.");
+        else if (!Directory.Exists(source))
+            errors.Add($"Source folder not found: {source}");
+
+        if (string.IsNullOrWhiteSpace(export))
+            errors.Add("Export folder is required.");
+
+        if (!string.IsNullOrWhiteSpace(processed) && !Directory.Exists(processed))
+            errors.Add($"Processed folder path not found: {processed}");
+
+        if (!string.IsNullOrWhiteSpace(failed) && !Directory.Exists(failed))
+            errors.Add($"Failed folder path not found: {failed}");
+
+        return errors.Count == 0;
     }
 
     private void OnProgress(ProcessResult result)
@@ -342,6 +562,13 @@ public class AppWindow : Win32GameWindow
             : result.Status;
 
         AddLog(prefix + result.Message, displayStatus);
+
+        if (result.Status is ResultStatus.Success or ResultStatus.Failed)
+        {
+            _convLog?.Log(result.Entry.SourcePath, result.OutputPath,
+                          result.Entry.Category, result.Status);
+            _historyLoaded = false;
+        }
     }
 
     private void AddLog(string text, ResultStatus status)
@@ -350,8 +577,18 @@ public class AppWindow : Win32GameWindow
     }
 
     private static void PathRow(string label, string id, byte[] buffer, string browseTitle,
-        float labelCol, float inputWidth, float browseWidth)
+        float labelCol, float inputWidth, float browseWidth, bool required)
     {
+        string current = ReadString(buffer);
+        bool isEmpty   = string.IsNullOrWhiteSpace(current);
+        bool invalid   = !isEmpty && !Directory.Exists(current);
+        bool missingRequired = required && isEmpty;
+
+        // Red tint when path is set but doesn't exist, or required but empty
+        bool highlight = invalid || missingRequired;
+        if (highlight)
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, new SysVec4(0.4f, 0.1f, 0.1f, 1f));
+
         ImGui.Text(label);
         ImGui.SameLine(labelCol);
         ImGui.SetNextItemWidth(inputWidth);
@@ -359,6 +596,9 @@ public class AppWindow : Win32GameWindow
         ImGui.SameLine();
         if (ImGui.Button($"Browse##{id}", new SysVec2(browseWidth, 0)))
             BrowseFolder(buffer, browseTitle);
+
+        if (highlight)
+            ImGui.PopStyleColor();
     }
 
     private static void BrowseFolder(byte[] buffer, string title)

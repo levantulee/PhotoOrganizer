@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PhotoOrganizer.UI;
 
@@ -25,6 +26,102 @@ public class ImGuiController : IDisposable
     private int _windowHeight;
 
     private bool _frameBegun;
+    private bool _prevCtrlV;
+
+    // ── Win32 clipboard ───────────────────────────────────────────────────────
+
+    [DllImport("user32.dll")] private static extern bool OpenClipboard(IntPtr hWnd);
+    [DllImport("user32.dll")] private static extern bool CloseClipboard();
+    [DllImport("user32.dll")] private static extern bool EmptyClipboard();
+    [DllImport("user32.dll")] private static extern IntPtr GetClipboardData(uint uFormat);
+    [DllImport("user32.dll")] private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalLock(IntPtr hMem);
+    [DllImport("kernel32.dll")] private static extern bool GlobalUnlock(IntPtr hMem);
+
+    private const uint CF_UNICODETEXT = 13;
+    private const uint GMEM_MOVEABLE  = 0x0002;
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate IntPtr GetClipboardFn(IntPtr userData);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void SetClipboardFn(IntPtr userData, IntPtr text);
+
+    // Must be kept alive for the lifetime of the ImGui context
+    private static readonly GetClipboardFn _getClipboardDelegate = ImGuiGetClipboard;
+    private static readonly SetClipboardFn _setClipboardDelegate = ImGuiSetClipboard;
+    private static byte[]?  _clipboardUtf8;
+    private static GCHandle _clipboardPin;
+
+    private static string ReadClipboardString()
+    {
+        try
+        {
+            if (!OpenClipboard(IntPtr.Zero)) return "";
+            try
+            {
+                var hData = GetClipboardData(CF_UNICODETEXT);
+                if (hData == IntPtr.Zero) return "";
+                var ptr = GlobalLock(hData);
+                if (ptr == IntPtr.Zero) return "";
+                try { return Marshal.PtrToStringUni(ptr) ?? ""; }
+                finally { GlobalUnlock(hData); }
+            }
+            finally { CloseClipboard(); }
+        }
+        catch { return ""; }
+    }
+
+    private static IntPtr ImGuiGetClipboard(IntPtr _)
+    {
+        try
+        {
+            if (!OpenClipboard(IntPtr.Zero)) return IntPtr.Zero;
+            try
+            {
+                var hData = GetClipboardData(CF_UNICODETEXT);
+                if (hData == IntPtr.Zero) return IntPtr.Zero;
+                var ptr = GlobalLock(hData);
+                if (ptr == IntPtr.Zero) return IntPtr.Zero;
+                try
+                {
+                    var text = Marshal.PtrToStringUni(ptr) ?? "";
+                    if (_clipboardPin.IsAllocated) _clipboardPin.Free();
+                    _clipboardUtf8 = Encoding.UTF8.GetBytes(text + "\0");
+                    _clipboardPin  = GCHandle.Alloc(_clipboardUtf8, GCHandleType.Pinned);
+                    return _clipboardPin.AddrOfPinnedObject();
+                }
+                finally { GlobalUnlock(hData); }
+            }
+            finally { CloseClipboard(); }
+        }
+        catch { return IntPtr.Zero; }
+    }
+
+    private static void ImGuiSetClipboard(IntPtr _, IntPtr text)
+    {
+        try
+        {
+            var str   = Marshal.PtrToStringUTF8(text) ?? "";
+            var utf16 = Encoding.Unicode.GetBytes(str + "\0\0");
+            if (!OpenClipboard(IntPtr.Zero)) return;
+            try
+            {
+                EmptyClipboard();
+                var hMem = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)utf16.Length);
+                if (hMem == IntPtr.Zero) return;
+                var dst = GlobalLock(hMem);
+                if (dst != IntPtr.Zero)
+                {
+                    Marshal.Copy(utf16, 0, dst, utf16.Length);
+                    GlobalUnlock(hMem);
+                }
+                SetClipboardData(CF_UNICODETEXT, hMem);
+            }
+            finally { CloseClipboard(); }
+        }
+        catch { }
+    }
 
     public ImGuiController(int width, int height)
     {
@@ -37,6 +134,9 @@ public class ImGuiController : IDisposable
         var io = ImGui.GetIO();
         io.Fonts.AddFontDefault();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+
+        io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_getClipboardDelegate);
+        io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_setClipboardDelegate);
 
         CreateDeviceResources();
         SetKeyMappings();
@@ -199,9 +299,9 @@ void main() {
         }
 
         // Modifier keys
-        io.AddKeyEvent(ImGuiKey.ModCtrl,  wnd.IsKeyDown(162) || wnd.IsKeyDown(163)); // VK_LCONTROL, VK_RCONTROL
-        io.AddKeyEvent(ImGuiKey.ModShift, wnd.IsKeyDown(160) || wnd.IsKeyDown(161)); // VK_LSHIFT, VK_RSHIFT
-        io.AddKeyEvent(ImGuiKey.ModAlt,   wnd.IsKeyDown(164) || wnd.IsKeyDown(165)); // VK_LMENU, VK_RMENU
+        io.AddKeyEvent(ImGuiKey.ModCtrl,  wnd.IsKeyDown(162) || wnd.IsKeyDown(163));
+        io.AddKeyEvent(ImGuiKey.ModShift, wnd.IsKeyDown(160) || wnd.IsKeyDown(161));
+        io.AddKeyEvent(ImGuiKey.ModAlt,   wnd.IsKeyDown(164) || wnd.IsKeyDown(165));
     }
 
     public void PressChar(char c)

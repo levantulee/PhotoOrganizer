@@ -71,7 +71,7 @@ public class Win32GameWindow : OpenTK.IBindingsContext, IDisposable
     [DllImport("gdi32.dll")]
     private static extern bool SetPixelFormat(IntPtr hdc, int format, ref PIXELFORMATDESCRIPTOR ppfd);
 
-    [DllImport("gdi32.dll")]
+    [DllImport("gdi32.dll", EntryPoint = "SwapBuffers")]
     private static extern bool SwapBuffers_GDI(IntPtr hdc);
 
     [DllImport("opengl32.dll")]
@@ -94,6 +94,13 @@ public class Win32GameWindow : OpenTK.IBindingsContext, IDisposable
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr LoadLibrary(string lpFileName);
+
+    [DllImport("user32.dll")]  private static extern bool  OpenClipboard(IntPtr hWnd);
+    [DllImport("user32.dll")]  private static extern bool  CloseClipboard();
+    [DllImport("user32.dll")]  private static extern IntPtr GetClipboardData(uint uFormat);
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalLock(IntPtr hMem);
+    [DllImport("kernel32.dll")] private static extern bool  GlobalUnlock(IntPtr hMem);
+    [DllImport("user32.dll")]  private static extern short GetKeyState(int nVirtKey);
 
     // ── Structs ───────────────────────────────────────────────────────────────
 
@@ -314,8 +321,20 @@ public class Win32GameWindow : OpenTK.IBindingsContext, IDisposable
             double dt = now - lastTime;
             lastTime = now;
 
-            OnUpdate(dt);
-            OnRender(dt);
+            try
+            {
+                OnUpdate(dt);
+                OnRender(dt);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(
+                    $"{ex.GetType().Name}:\n\n{ex.Message}\n\n{ex.StackTrace}",
+                    "Render Error", System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Error);
+                _running = false;
+                break;
+            }
 
             // ~60 fps cap
             double elapsed = sw.Elapsed.TotalSeconds - now;
@@ -474,7 +493,8 @@ public class Win32GameWindow : OpenTK.IBindingsContext, IDisposable
                 return IntPtr.Zero;
 
             case WM_DESTROY:
-                PostQuitMessage(0);
+                if (hWnd == self._hWnd)
+                    PostQuitMessage(0);
                 return IntPtr.Zero;
 
             case WM_SIZE:
@@ -547,6 +567,35 @@ public class Win32GameWindow : OpenTK.IBindingsContext, IDisposable
             {
                 int vk = (int)(wParam.ToInt64() & 0xFF);
                 if (vk < 256) self._keyStates[vk] = true;
+
+                // Ctrl+V — read clipboard and push chars into PendingChars so
+                // ImGui's active input field receives them exactly like typed text.
+                if (vk == 0x56 && (GetKeyState(0x11) & 0x8000) != 0) // V + Ctrl
+                {
+                    if (OpenClipboard(IntPtr.Zero))
+                    {
+                        try
+                        {
+                            var hData = GetClipboardData(13u); // CF_UNICODETEXT
+                            if (hData != IntPtr.Zero)
+                            {
+                                var ptr = GlobalLock(hData);
+                                if (ptr != IntPtr.Zero)
+                                {
+                                    try
+                                    {
+                                        var text = System.Runtime.InteropServices.Marshal.PtrToStringUni(ptr) ?? "";
+                                        foreach (char c in text)
+                                            if (c >= 32) self.PendingChars.Enqueue(c);
+                                    }
+                                    finally { GlobalUnlock(hData); }
+                                }
+                            }
+                        }
+                        finally { CloseClipboard(); }
+                    }
+                }
+
                 return DefWindowProc(hWnd, msg, wParam, lParam);
             }
 

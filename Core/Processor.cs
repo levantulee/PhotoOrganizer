@@ -100,15 +100,39 @@ public class Processor
 
                 img.SetProfile(exifProfile);
 
-                // XMP profile — keep as-is from original (contains camera/edit history etc.)
-                // Magick.NET preserves it automatically in the MagickImage object;
-                // SetProfile is only needed for profiles we explicitly modified.
+                // --- EXIF diagnostic ---
+                byte[]? fromFile    = ExtractRawExifFromJpeg(filePath);
+                byte[]? fromProfile = exifProfile.ToByteArray();
+                byte[]? rawExif     = fromFile ?? fromProfile;
 
-                // Tell the PNG encoder to include ALL metadata chunks (eXIf, iTXt/XMP, iCCP, etc.)
-                img.Settings.SetDefine("png:include-chunk", "all");
+                string make  = exifProfile.GetValue(ExifTag.Make)?.Value  ?? "(none)";
+                string model = exifProfile.GetValue(ExifTag.Model)?.Value ?? "(none)";
+                string dto   = exifProfile.GetValue(ExifTag.DateTimeOriginal)?.Value ?? "(none)";
+                Progress?.Invoke(new ProcessResult
+                {
+                    Entry   = entry,
+                    Status  = ResultStatus.Skipped,
+                    Message = $"[EXIF diag] file={FmtBytes(fromFile)} profile={FmtBytes(fromProfile)} " +
+                              $"Make={make} Model={model} DTO={dto}"
+                });
 
                 img.Format = MagickFormat.Png;
                 await img.WriteAsync(outputPath, ct);
+
+                string injectResult = rawExif is { Length: > 0 }
+                    ? TryInjectExifIntoPng(outputPath, rawExif)
+                    : "skip:no-raw-exif";
+
+                // Read back the eXIf chunk from the written PNG to verify round-trip.
+                byte[]? pngExif = ReadExifChunkFromPng(outputPath);
+                bool match = rawExif != null && pngExif != null && rawExif.Length == pngExif.Length;
+                Progress?.Invoke(new ProcessResult
+                {
+                    Entry   = entry,
+                    Status  = ResultStatus.Skipped,
+                    Message = $"[EXIF cmp] inject={injectResult} " +
+                              $"src={FmtBytes(rawExif)} png={FmtBytes(pngExif)} match={match}"
+                });
 
                 result.WasConverted = entry.Category == FileCategory.Heic;
 
@@ -126,8 +150,10 @@ public class Processor
                 }
             }
 
-            // 4. Move source to Processed
+            // 4. Move source (and any JSON sidecar) to Processed
             MoveToProcessed(filePath, opts.SourceFolder, opts.ProcessedFolder);
+            if (!string.IsNullOrEmpty(entry.JsonSidecarPath))
+                MoveToProcessed(entry.JsonSidecarPath, opts.SourceFolder, opts.ProcessedFolder);
 
             result.Status = ResultStatus.Success;
             result.Message = BuildSuccessMessage(entry, outputPath);
@@ -221,15 +247,238 @@ public class Processor
         catch { /* move failure is non-fatal */ }
     }
 
+    // ── Diagnostics ───────────────────────────────────────────────────────────
+
+    private static string FmtBytes(byte[]? b)
+    {
+        if (b == null)            return "null";
+        if (b.Length == 0)        return "empty";
+        string hdr = b.Length >= 4
+            ? $"{b[0]:X2}{b[1]:X2}{b[2]:X2}{b[3]:X2}"
+            : BitConverter.ToString(b).Replace("-", "");
+        return $"{b.Length}b[{hdr}]";
+    }
+
+    // ── Raw EXIF extraction ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Reads the raw TIFF bytes from a JPEG APP1/Exif segment.
+    /// Returns null if the file is not a JPEG or has no Exif APP1.
+    /// </summary>
+    private static byte[]? ExtractRawExifFromJpeg(string path)
+    {
+        try
+        {
+            using var fs = File.OpenRead(path);
+            var buf = new byte[4];
+
+            // Must start with JPEG SOI 0xFF 0xD8
+            if (fs.Read(buf, 0, 2) != 2 || buf[0] != 0xFF || buf[1] != 0xD8)
+                return null;
+
+            while (true)
+            {
+                // Each segment marker starts with 0xFF
+                if (fs.Read(buf, 0, 2) != 2 || buf[0] != 0xFF) return null;
+                byte marker = buf[1];
+                while (marker == 0xFF) // skip padding
+                {
+                    if (fs.Read(buf, 0, 1) != 1) return null;
+                    marker = buf[0];
+                }
+
+                if (marker == 0xD9 || marker == 0xDA) return null; // EOI / SOS
+
+                // Segment length field includes its own 2 bytes
+                if (fs.Read(buf, 0, 2) != 2) return null;
+                int segLen = (buf[0] << 8) | buf[1];
+                if (segLen < 2) return null;
+
+                if (marker == 0xE1) // APP1
+                {
+                    var data = new byte[segLen - 2];
+                    if (fs.Read(data, 0, data.Length) != data.Length) return null;
+
+                    // Must start with "Exif\0\0"
+                    if (data.Length >= 6 &&
+                        data[0] == 'E' && data[1] == 'x' && data[2] == 'i' &&
+                        data[3] == 'f' && data[4] == 0   && data[5] == 0)
+                    {
+                        return data[6..]; // raw TIFF — "II*\0..." or "MM\0*..."
+                    }
+                    // Could be XMP APP1 — skip it and keep looking
+                }
+
+                fs.Seek(segLen - 2, SeekOrigin.Current);
+            }
+        }
+        catch { return null; }
+    }
+
+    // ── PNG eXIf chunk injection ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Strips any existing eXIf chunks then injects our raw TIFF bytes as a new one
+    /// right after IHDR. Returns a short status string for diagnostic logging.
+    /// </summary>
+    private static string TryInjectExifIntoPng(string pngPath, byte[] exifData)
+    {
+        try
+        {
+            // Strip "Exif\0\0" JPEG APP1 prefix — PNG eXIf payload is raw TIFF.
+            if (exifData.Length > 6 &&
+                exifData[0] == 'E' && exifData[1] == 'x' && exifData[2] == 'i' &&
+                exifData[3] == 'f' && exifData[4] == 0   && exifData[5] == 0)
+                exifData = exifData[6..];
+
+            if (exifData.Length < 4 ||
+                !((exifData[0] == 'I' && exifData[1] == 'I') ||
+                  (exifData[0] == 'M' && exifData[1] == 'M')))
+                return $"skip:bad-tiff-header {exifData[0]:X2}{exifData[1]:X2}";
+
+            byte[] png = File.ReadAllBytes(pngPath);
+
+            ReadOnlySpan<byte> sig = new byte[]
+                { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+            if (png.Length < 33 || !png.AsSpan(0, 8).SequenceEqual(sig))
+                return "skip:not-png";
+
+            // Strip any eXIf chunk Magick.NET may have written (could be empty/broken).
+            const uint TAG_eXIf = 0x65584966u; // 'e','X','I','f'
+            bool stripped;
+            (png, stripped) = StripPngChunks(png, TAG_eXIf);
+
+            // Insert immediately after IHDR (always first chunk, offset 8).
+            int ihdrDataLen = PngReadInt32(png, 8);
+            int insertAt    = 8 + 4 + 4 + ihdrDataLen + 4;
+
+            byte[] typeBytes = { 0x65, 0x58, 0x49, 0x66 }; // "eXIf"
+            uint   crc       = PngCrc32(typeBytes, exifData);
+
+            byte[] chunk = new byte[4 + 4 + exifData.Length + 4];
+            PngWriteInt32(chunk, 0, exifData.Length);
+            typeBytes.CopyTo(chunk, 4);
+            exifData.CopyTo(chunk, 8);
+            PngWriteInt32(chunk, 8 + exifData.Length, (int)crc);
+
+            byte[] result = new byte[png.Length + chunk.Length];
+            png.AsSpan(0, insertAt).CopyTo(result);
+            chunk.CopyTo(result, insertAt);
+            png.AsSpan(insertAt).CopyTo(result.AsSpan(insertAt + chunk.Length));
+
+            File.WriteAllBytes(pngPath, result);
+            return $"ok:{exifData.Length}b{(stripped ? " (replaced existing)" : "")}";
+        }
+        catch (Exception ex)
+        {
+            return $"error:{ex.Message}";
+        }
+    }
+
+    /// <summary>Scans a PNG file and returns the payload of the first eXIf chunk, or null if none found.</summary>
+    private static byte[]? ReadExifChunkFromPng(string pngPath)
+    {
+        try
+        {
+            byte[] png = File.ReadAllBytes(pngPath);
+            ReadOnlySpan<byte> sig = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+            if (png.Length < 33 || !png.AsSpan(0, 8).SequenceEqual(sig)) return null;
+
+            const uint TAG_eXIf = 0x65584966u;
+            const uint TAG_IEND = 0x49454E44u;
+            int pos = 8;
+            while (pos + 12 <= png.Length)
+            {
+                int  dataLen = PngReadInt32(png, pos);
+                uint type    = (uint)PngReadInt32(png, pos + 4);
+                if (type == TAG_eXIf && pos + 8 + dataLen <= png.Length)
+                    return png[(pos + 8)..(pos + 8 + dataLen)];
+                if (type == TAG_IEND) break;
+                pos += 4 + 4 + dataLen + 4;
+            }
+            return null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>Removes all chunks matching chunkTag; returns modified bytes and whether any were removed.</summary>
+    private static (byte[] png, bool stripped) StripPngChunks(byte[] png, uint chunkTag)
+    {
+        bool found = false;
+        int pos = 8;
+        while (pos + 12 <= png.Length)
+        {
+            int  dataLen  = PngReadInt32(png, pos);
+            uint type     = (uint)PngReadInt32(png, pos + 4);
+            if (type == chunkTag) { found = true; break; }
+            if (type == 0x49454E44u) break; // IEND
+            pos += 4 + 4 + dataLen + 4;
+        }
+        if (!found) return (png, false);
+
+        using var ms = new MemoryStream(png.Length);
+        ms.Write(png, 0, 8); // signature
+        pos = 8;
+        while (pos + 12 <= png.Length)
+        {
+            int  dataLen = PngReadInt32(png, pos);
+            uint type    = (uint)PngReadInt32(png, pos + 4);
+            int  total   = 4 + 4 + dataLen + 4;
+            if (pos + total > png.Length) break;
+            if (type != chunkTag)
+                ms.Write(png, pos, total);
+            pos += total;
+            if (type == 0x49454E44u) break; // IEND
+        }
+        return (ms.ToArray(), true);
+    }
+
+    private static int PngReadInt32(byte[] d, int i) =>
+        (d[i] << 24) | (d[i + 1] << 16) | (d[i + 2] << 8) | d[i + 3];
+
+    private static void PngWriteInt32(byte[] d, int i, int v)
+    {
+        // Cast to uint before shifting — int >> is arithmetic (sign-extends),
+        // which corrupts any byte where bit 7 is set.
+        uint u   = (uint)v;
+        d[i]     = (byte)(u >> 24);
+        d[i + 1] = (byte)(u >> 16);
+        d[i + 2] = (byte)(u >> 8);
+        d[i + 3] = (byte)u;
+    }
+
+    // Standard CRC-32 (PNG uses CRC over chunk type + chunk data).
+    private static readonly uint[] _crcTable = BuildCrcTable();
+    private static uint[] BuildCrcTable()
+    {
+        var t = new uint[256];
+        for (uint n = 0; n < 256; n++)
+        {
+            uint c = n;
+            for (int k = 0; k < 8; k++)
+                c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
+            t[n] = c;
+        }
+        return t;
+    }
+
+    private static uint PngCrc32(byte[] a, byte[] b)
+    {
+        uint crc = 0xFFFFFFFF;
+        foreach (byte x in a) crc = _crcTable[(crc ^ x) & 0xFF] ^ (crc >> 8);
+        foreach (byte x in b) crc = _crcTable[(crc ^ x) & 0xFF] ^ (crc >> 8);
+        return crc ^ 0xFFFFFFFF;
+    }
+
     private static string GetUniqueFilePath(string path)
     {
         var dir = Path.GetDirectoryName(path) ?? "";
         var name = Path.GetFileNameWithoutExtension(path);
         var ext = Path.GetExtension(path);
-        int i = 2;
+        int i = 1;
         while (File.Exists(path))
         {
-            path = Path.Combine(dir, $"{name}_{i}{ext}");
+            path = Path.Combine(dir, $"{name}_{i:D4}{ext}");
             i++;
         }
         return path;

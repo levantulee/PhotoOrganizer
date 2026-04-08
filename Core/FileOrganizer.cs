@@ -55,10 +55,10 @@ public class FileOrganizer
             var dir = Path.GetDirectoryName(path) ?? "";
             var nameNoExt = Path.GetFileNameWithoutExtension(path);
             var ext = Path.GetExtension(path);
-            int counter = 2;
+            int counter = 1;
             while (true)
             {
-                var candidate = Path.Combine(dir, $"{nameNoExt}_{counter}{ext}");
+                var candidate = Path.Combine(dir, $"{nameNoExt}_{counter:D4}{ext}");
                 if (!File.Exists(candidate) && _reserved.Add(candidate))
                     return candidate;
                 counter++;

@@ -12,17 +12,20 @@ public class VideoConverter
     {
         try
         {
-            var result = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            using var proc = new System.Diagnostics.Process();
+            proc.StartInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "ffmpeg",
                 Arguments = "-version",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
-            });
-            result?.WaitForExit(3000);
-            IsFfmpegAvailable = result?.ExitCode == 0;
+                CreateNoWindow = true,
+                // Do NOT redirect streams — avoids buffer-fill deadlock
+                RedirectStandardOutput = false,
+                RedirectStandardError = false
+            };
+            proc.Start();
+            proc.WaitForExit(3000);
+            IsFfmpegAvailable = proc.ExitCode == 0;
         }
         catch
         {
