@@ -129,6 +129,12 @@ Processing history is stored in `%APPDATA%/PhotoOrganizer/history.db` (SQLite).
 
 ---
 
+## AI Disclaimer
+
+Claude Code has been used as an assistant for sanity checking, debugging and naming consistency to get this personal tool to a state where it can be used by others. Enjoy!
+
+---
+
 ## License
 
 Copyright © 2026 Simon Rozner. Non-commercial use only with attribution required. See [LICENSE](LICENSE) for full terms. Commercial licensing available on request.
