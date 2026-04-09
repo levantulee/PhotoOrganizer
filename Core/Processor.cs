@@ -67,7 +67,7 @@ public class Processor
         // Prevent ImageMagick from spawning its own internal thread pool per operation.
         // Without this, each MagickImage call can use many OS threads internally,
         // blowing past the throttle limit and pegging all cores.
-        MagickNET.SetResourceLimit(ResourceType.Thread, 1);
+        ResourceLimits.Thread = 1;
 
         // Each file waits for a throttle slot, then dispatches its work to a real
         // thread-pool thread via Task.Run so CPU-bound work runs truly in parallel.
