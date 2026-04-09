@@ -64,22 +64,32 @@ public class Processor
         _folderSemaphores.Clear();
         _throttle = new DynamicThrottle(opts.Parallelism);
 
-        // Each file acquires a slot from the throttle before doing any work.
-        // The throttle count can be raised or lowered at any time via SetParallelism().
+        // Prevent ImageMagick from spawning its own internal thread pool per operation.
+        // Without this, each MagickImage call can use many OS threads internally,
+        // blowing past the throttle limit and pegging all cores.
+        MagickNET.SetResourceLimit(ResourceType.Thread, 1);
+
+        // Each file waits for a throttle slot, then dispatches its work to a real
+        // thread-pool thread via Task.Run so CPU-bound work runs truly in parallel.
+        // Without Task.Run the async lambdas execute synchronously on the caller's
+        // thread until the first genuine I/O yield, making all conversions sequential.
         var tasks = files.Select(async file =>
         {
             await _throttle.WaitAsync(ct);
             try
             {
-                _pauseGate.Wait(ct);
-                ct.ThrowIfCancellationRequested();
+                await Task.Run(async () =>
+                {
+                    _pauseGate.Wait(ct);
+                    ct.ThrowIfCancellationRequested();
 
-                var entry = _metadata.Resolve(file);
+                    var entry = _metadata.Resolve(file);
 
-                if (entry.DateIsUnknown && opts.InferMissingDates)
-                    await TryInferDateFromFolderAsync(entry, ct);
+                    if (entry.DateIsUnknown && opts.InferMissingDates)
+                        await TryInferDateFromFolderAsync(entry, ct);
 
-                Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+                    Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+                }, ct);
             }
             finally
             {

@@ -359,7 +359,7 @@ public class AppWindow : Win32GameWindow
         if (ImGui.SliderInt("##cores", ref _coreCount, 1, _maxCores) && _isRunning)
             _processor?.SetParallelism(_coreCount);
         ImGui.SameLine();
-        ImGui.TextDisabled(_isRunning ? $"(live — of {_maxCores} cores)" : $"(of {_maxCores} logical cores)");
+        ImGui.TextDisabled(_isRunning ? $"(live {_coreCount} of {_maxCores} cores)" : $"(of {_maxCores} logical cores)");
 
         ImGui.Spacing();
 

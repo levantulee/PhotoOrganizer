@@ -1,16 +1,15 @@
-=== PhotoOrganizer started 2026-04-09 21:58:49 ===
+=== PhotoOrganizer started 2026-04-09 23:03:50 ===
 [0.02s] Main() entered
-[0.15s] Splash visible
-[0.15s] new AppWindow()...
-[0.15s] AppWindow ctor done
-[0.30s] Starting window.Run()...
-[0.66s] OnLoad() start
-[0.66s] OnLoad() base done
-[0.68s] ImGuiController created
-[0.73s] OnLoad() done — window visible, background init starting
-[0.74s] Background: OpenCL start
-[0.76s] Background: OpenCL done
-[0.76s] Background: FFmpeg check start
-[1.10s] Background: FFmpeg check done — found=True
-[1.10s] Background: all init complete
-[3.23s] window.Run() returned
+[0.38s] Splash visible
+[0.38s] new AppWindow()...
+[0.39s] AppWindow ctor done
+[0.77s] Starting window.Run()...
+[1.13s] OnLoad() start
+[1.13s] OnLoad() base done
+[1.19s] ImGuiController created
+[1.22s] OnLoad() done — window visible, background init starting
+[1.33s] Background: OpenCL start
+[1.35s] Background: OpenCL done
+[1.35s] Background: FFmpeg check start
+[1.70s] Background: FFmpeg check done — found=True
+[1.70s] Background: all init complete
