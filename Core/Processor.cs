@@ -50,6 +50,9 @@ public class Processor
 
         EmitInfo($"Processing {files.Count} files…");
 
+        _folderInferenceCache.Clear();
+        _folderSemaphores.Clear();
+
         // Resolve and convert each file on the fly. If a file has no date and inference is
         // enabled, we lazily scan only that file's folder (once per folder) and infer.
         await Parallel.ForEachAsync(files,
@@ -66,6 +69,10 @@ public class Processor
 
                 Progress?.Invoke(await ProcessFileAsync(entry, opts, token));
             });
+
+        // Release inference cache memory once the run is done
+        _folderInferenceCache.Clear();
+        _folderSemaphores.Clear();
     }
 
     /// <summary>
@@ -225,13 +232,24 @@ public class Processor
                 img.Format = MagickFormat.Png;
                 await img.WriteAsync(outputPath, ct);
 
-                string injectResult = rawExif is { Length: > 0 }
-                    ? TryInjectExifIntoPng(outputPath, rawExif)
-                    : "skip:no-raw-exif";
+                string injectResult;
+                byte[]? injectedPng = null;
+                if (rawExif is { Length: > 0 })
+                    (injectResult, injectedPng) = TryInjectExifIntoPng(outputPath, rawExif);
+                else
+                    injectResult = "skip:no-raw-exif";
 
-                // Read back the eXIf chunk from the written PNG to verify round-trip.
-                byte[]? pngExif = ReadExifChunkFromPng(outputPath);
+                // Verify round-trip using the already-in-memory bytes — no second disk read.
+                byte[]? pngExif = injectedPng != null
+                    ? FindExifChunkInBytes(injectedPng)
+                    : ReadExifChunkFromPng(outputPath);
                 bool match = rawExif != null && pngExif != null && rawExif.Length == pngExif.Length;
+
+                // Release the large buffers as soon as we're done with them
+                injectedPng = null;
+                rawExif     = null;
+                fromFile    = null;
+                fromProfile = null;
                 Progress?.Invoke(new ProcessResult
                 {
                     Entry   = entry,
@@ -422,7 +440,12 @@ public class Processor
     /// Strips any existing eXIf chunks then injects our raw TIFF bytes as a new one
     /// right after IHDR. Returns a short status string for diagnostic logging.
     /// </summary>
-    private static string TryInjectExifIntoPng(string pngPath, byte[] exifData)
+    /// <summary>
+    /// Injects raw TIFF EXIF into a PNG file as an eXIf chunk.
+    /// Returns the status string and the final PNG bytes (already written to disk).
+    /// Caller can use the returned bytes for verification without a second disk read.
+    /// </summary>
+    private static (string status, byte[]? pngBytes) TryInjectExifIntoPng(string pngPath, byte[] exifData)
     {
         try
         {
@@ -435,25 +458,23 @@ public class Processor
             if (exifData.Length < 4 ||
                 !((exifData[0] == 'I' && exifData[1] == 'I') ||
                   (exifData[0] == 'M' && exifData[1] == 'M')))
-                return $"skip:bad-tiff-header {exifData[0]:X2}{exifData[1]:X2}";
+                return ($"skip:bad-tiff-header {exifData[0]:X2}{exifData[1]:X2}", null);
 
             byte[] png = File.ReadAllBytes(pngPath);
 
             ReadOnlySpan<byte> sig = new byte[]
                 { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
             if (png.Length < 33 || !png.AsSpan(0, 8).SequenceEqual(sig))
-                return "skip:not-png";
+                return ("skip:not-png", null);
 
-            // Strip any eXIf chunk Magick.NET may have written (could be empty/broken).
-            const uint TAG_eXIf = 0x65584966u; // 'e','X','I','f'
+            const uint TAG_eXIf = 0x65584966u;
             bool stripped;
             (png, stripped) = StripPngChunks(png, TAG_eXIf);
 
-            // Insert immediately after IHDR (always first chunk, offset 8).
             int ihdrDataLen = PngReadInt32(png, 8);
             int insertAt    = 8 + 4 + 4 + ihdrDataLen + 4;
 
-            byte[] typeBytes = { 0x65, 0x58, 0x49, 0x66 }; // "eXIf"
+            byte[] typeBytes = { 0x65, 0x58, 0x49, 0x66 };
             uint   crc       = PngCrc32(typeBytes, exifData);
 
             byte[] chunk = new byte[4 + 4 + exifData.Length + 4];
@@ -467,21 +488,33 @@ public class Processor
             chunk.CopyTo(result, insertAt);
             png.AsSpan(insertAt).CopyTo(result.AsSpan(insertAt + chunk.Length));
 
+            // Release the intermediate buffer before writing
+            png = null!;
+
             File.WriteAllBytes(pngPath, result);
-            return $"ok:{exifData.Length}b{(stripped ? " (replaced existing)" : "")}";
+            return ($"ok:{exifData.Length}b{(stripped ? " (replaced existing)" : "")}", result);
         }
         catch (Exception ex)
         {
-            return $"error:{ex.Message}";
+            return ($"error:{ex.Message}", null);
         }
     }
 
-    /// <summary>Scans a PNG file and returns the payload of the first eXIf chunk, or null if none found.</summary>
+    /// <summary>Reads a PNG from disk and returns the payload of the first eXIf chunk, or null.</summary>
     private static byte[]? ReadExifChunkFromPng(string pngPath)
     {
         try
         {
-            byte[] png = File.ReadAllBytes(pngPath);
+            return FindExifChunkInBytes(File.ReadAllBytes(pngPath));
+        }
+        catch { return null; }
+    }
+
+    /// <summary>Scans already-loaded PNG bytes for the first eXIf chunk payload — no disk I/O.</summary>
+    private static byte[]? FindExifChunkInBytes(byte[] png)
+    {
+        try
+        {
             ReadOnlySpan<byte> sig = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
             if (png.Length < 33 || !png.AsSpan(0, 8).SequenceEqual(sig)) return null;
 

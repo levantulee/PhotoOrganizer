@@ -80,6 +80,45 @@ public class ConversionLog : IDisposable
         }
     }
 
+    public int GetTotalCount()
+    {
+        lock (_lock)
+        {
+            using var cmd = _conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM conversions";
+            return Convert.ToInt32(cmd.ExecuteScalar());
+        }
+    }
+
+    public List<Entry> GetPage(int offset, int pageSize, string? statusFilter = null)
+    {
+        lock (_lock)
+        {
+            using var cmd = _conn.CreateCommand();
+            if (statusFilter != null)
+            {
+                cmd.CommandText = $"""
+                    SELECT id, source_path, output_path, category, converted_at, status
+                    FROM conversions WHERE status = $st ORDER BY id DESC LIMIT {pageSize} OFFSET {offset}
+                    """;
+                cmd.Parameters.AddWithValue("$st", statusFilter);
+            }
+            else
+            {
+                cmd.CommandText = $"""
+                    SELECT id, source_path, output_path, category, converted_at, status
+                    FROM conversions ORDER BY id DESC LIMIT {pageSize} OFFSET {offset}
+                    """;
+            }
+            using var r = cmd.ExecuteReader();
+            var list = new List<Entry>();
+            while (r.Read())
+                list.Add(new Entry(r.GetInt32(0), r.GetString(1), r.GetString(2),
+                                   r.GetString(3), r.GetString(4), r.GetString(5)));
+            return list;
+        }
+    }
+
     /// <summary>Returns all source paths that were previously processed successfully.</summary>
     public HashSet<string> GetProcessedSourcePaths()
     {

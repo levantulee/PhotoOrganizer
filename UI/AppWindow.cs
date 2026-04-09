@@ -13,12 +13,16 @@ public class AppWindow : Win32GameWindow
     private ImGuiController _imGui = null!;
     private ConversionLog? _convLog;
     private readonly ExifViewerPanel _exifViewer = new();
+    private readonly VerificationPanel _verificationPanel = new();
+    private readonly DbHistoryPanel _dbHistoryPanel = new();
     private readonly Action? _onReady;
 
     // Panel visibility
-    private bool _showProcessing  = true;
-    private bool _showHistory     = true;
-    private bool _showExifViewer  = false;
+    private bool _showProcessing    = true;
+    private bool _showHistory       = true;
+    private bool _showExifViewer    = false;
+    private bool _showVerification  = false;
+    private bool _showDbHistory     = false;
 
     // History tab state
     private List<ConversionLog.Entry> _history = new();
@@ -63,6 +67,7 @@ public class AppWindow : Win32GameWindow
         _onReady = onReady;
         StartupTimer.Log("AppWindow ctor done");
         try { _convLog = new ConversionLog(); } catch { /* DB unavailable */ }
+        _dbHistoryPanel.SetLog(_convLog);
         LoadSettings();
     }
 
@@ -242,9 +247,11 @@ public class AppWindow : Win32GameWindow
         {
             if (ImGui.BeginMenu("View"))
             {
-                ImGui.MenuItem("Processing",  null, ref _showProcessing);
-                ImGui.MenuItem("History",     null, ref _showHistory);
-                ImGui.MenuItem("EXIF Viewer", null, ref _showExifViewer);
+                ImGui.MenuItem("Processing",   null, ref _showProcessing);
+                ImGui.MenuItem("History",      null, ref _showHistory);
+                ImGui.MenuItem("EXIF Viewer",  null, ref _showExifViewer);
+                ImGui.MenuItem("Verification", null, ref _showVerification);
+                ImGui.MenuItem("DB History",   null, ref _showDbHistory);
                 ImGui.EndMenu();
             }
             ImGui.EndMenuBar();
@@ -287,6 +294,14 @@ public class AppWindow : Win32GameWindow
 
         // ── EXIF Viewer panel ─────────────────────────────────────────────────
         _exifViewer.Draw(ref _showExifViewer);
+
+        // ── Verification panel ────────────────────────────────────────────────
+        _verificationPanel.Draw(ref _showVerification,
+            ReadString(_sourceFolder), ReadString(_exportFolder),
+            ReadString(_processedFolder), ReadString(_failedFolder));
+
+        // ── DB History panel ──────────────────────────────────────────────────
+        _dbHistoryPanel.Draw(ref _showDbHistory);
     }
 
     private void BuildProcessingTab()
@@ -435,13 +450,15 @@ public class AppWindow : Win32GameWindow
                 }
                 if (isExif && !_filterExif) { idx++; continue; }
 
-                string prefix = isInfo ? "--- " : status switch
-                {
-                    ResultStatus.Success => "[OK] ",
-                    ResultStatus.Skipped => "[!!] ",
-                    ResultStatus.Failed  => "[XX] ",
-                    _                   => "     "
-                };
+                string prefix = isInfo  ? "--- " :
+                                isExif  ? "[dbg] " :
+                                status switch
+                                {
+                                    ResultStatus.Success => "[OK]  ",
+                                    ResultStatus.Skipped => "[!!]  ",
+                                    ResultStatus.Failed  => "[XX]  ",
+                                    _                    => "      "
+                                };
                 string line = prefix + text;
 
                 if (filter.Length > 0 &&
@@ -451,7 +468,8 @@ public class AppWindow : Win32GameWindow
                     continue;
                 }
 
-                SysVec4 color = isInfo ? new SysVec4(0.55f, 0.55f, 0.55f, 1f) : status switch
+                var grey    = new SysVec4(0.5f, 0.5f, 0.5f, 1f);
+                SysVec4 color = isInfo || isExif ? grey : status switch
                 {
                     ResultStatus.Success => new SysVec4(0.4f, 1f, 0.4f, 1f),
                     ResultStatus.Skipped => new SysVec4(1f, 0.8f, 0.2f, 1f),
@@ -666,11 +684,18 @@ public class AppWindow : Win32GameWindow
 
     private void OnProgress(ProcessResult result)
     {
-        // Info events (no source path) are phase announcements from the processor — log as
-        // neutral text only, don't touch stats or DB.
+        // Info events (no source path) are phase announcements — neutral, no stats, no DB.
         if (string.IsNullOrEmpty(result.Entry.SourcePath))
         {
             AddLog(result.Message, null);
+            return;
+        }
+
+        // EXIF diagnostic events are debug-only — don't touch stats or DB,
+        // just park them in the log under the EXIF filter.
+        if (result.Message.StartsWith("[EXIF", StringComparison.Ordinal))
+        {
+            AddLog(result.Message, ResultStatus.Skipped); // Skipped kept so EXIF filter still works
             return;
         }
 
@@ -723,12 +748,20 @@ public class AppWindow : Win32GameWindow
             _convLog?.Log(result.Entry.SourcePath, result.OutputPath,
                           result.Entry.Category, result.Status);
             _historyLoaded = false;
+            _dbHistoryPanel.Invalidate();
         }
     }
 
+    private const int MaxLogEntries = 20_000;
+
     private void AddLog(string text, ResultStatus? status)
     {
-        lock (_logLock) _log.Add((text, status));
+        lock (_logLock)
+        {
+            if (_log.Count >= MaxLogEntries)
+                _log.RemoveRange(0, MaxLogEntries / 4); // drop oldest 25 %
+            _log.Add((text, status));
+        }
     }
 
     private static void PathRow(string label, string id, byte[] buffer, string browseTitle,
