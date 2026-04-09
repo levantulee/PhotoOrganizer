@@ -76,3 +76,5 @@ D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\runtimes\win-a
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\runtimes\win-arm64\native\e_sqlite3.dll
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\runtimes\win-x64\native\e_sqlite3.dll
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\runtimes\win-x86\native\e_sqlite3.dll
+D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\README.md
+D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Debug\net8.0-windows\LICENSE

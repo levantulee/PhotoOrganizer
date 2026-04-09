@@ -17,7 +17,10 @@
       "Bash(grep -E '\\\\.\\(exe|dll\\)$')",
       "Bash(./PhotoOrganizer.exe)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(dotnet list:*)"
+      "Bash(dotnet list:*)",
+      "Bash(xargs grep:*)",
+      "Bash(dotnet-ildasm ImGui.NET.dll)",
+      "Bash(powershell:*)"
     ]
   }
 }

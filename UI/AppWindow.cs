@@ -15,6 +15,7 @@ public class AppWindow : Win32GameWindow
     private readonly ExifViewerPanel _exifViewer = new();
     private readonly VerificationPanel _verificationPanel = new();
     private readonly DbHistoryPanel _dbHistoryPanel = new();
+    private readonly AboutPanel _aboutPanel = new();
     private readonly Action? _onReady;
 
     // Panel visibility
@@ -23,6 +24,7 @@ public class AppWindow : Win32GameWindow
     private bool _showExifViewer    = false;
     private bool _showVerification  = false;
     private bool _showDbHistory     = false;
+    private bool _showAbout         = false;
 
     // History tab state
     private List<ConversionLog.Entry> _history = new();
@@ -41,6 +43,9 @@ public class AppWindow : Win32GameWindow
     private bool _skipProcessed = true;
     private static readonly int _maxCores = Environment.ProcessorCount;
     private int _coreCount = Math.Max(1, Math.Min(8, Environment.ProcessorCount - 1));
+
+    // Dock layout
+    private bool _dockLayoutInitialized = false;
 
     // Log search / selection
     private byte[] _logFilter = new byte[256];
@@ -254,11 +259,27 @@ public class AppWindow : Win32GameWindow
                 ImGui.MenuItem("DB History",   null, ref _showDbHistory);
                 ImGui.EndMenu();
             }
+            if (ImGui.BeginMenu("Help"))
+            {
+                if (ImGui.MenuItem("About"))
+                    _showAbout = true;
+                ImGui.EndMenu();
+            }
             ImGui.EndMenuBar();
         }
 
         // ── DockSpace ─────────────────────────────────────────────────────────
-        ImGui.DockSpace(ImGui.GetID("##MainDockspace"), SysVec2.Zero, ImGuiDockNodeFlags.PassthruCentralNode);
+        uint dockspaceId = ImGui.GetID("##MainDockspace");
+
+        if (!_dockLayoutInitialized)
+        {
+            _dockLayoutInitialized = true;
+            string iniPath = Path.Combine(AppContext.BaseDirectory, "imgui.ini");
+            if (!File.Exists(iniPath))
+                InitDefaultDockLayout(dockspaceId, viewport.WorkSize);
+        }
+
+        ImGui.DockSpace(dockspaceId, SysVec2.Zero, ImGuiDockNodeFlags.PassthruCentralNode);
 
         ImGui.End(); // host
 
@@ -302,6 +323,9 @@ public class AppWindow : Win32GameWindow
 
         // ── DB History panel ──────────────────────────────────────────────────
         _dbHistoryPanel.Draw(ref _showDbHistory);
+
+        // ── About panel ───────────────────────────────────────────────────────
+        _aboutPanel.Draw(ref _showAbout);
     }
 
     private void BuildProcessingTab()
@@ -310,23 +334,21 @@ public class AppWindow : Win32GameWindow
 
         float labelCol = 130f;
         float browseWidth = 80f;
+        float openWidth = 60f;
         float spacing = ImGui.GetStyle().ItemSpacing.X;
-        float inputWidth = ImGui.GetContentRegionAvail().X - labelCol - browseWidth - spacing * 2;
+        float inputWidth = ImGui.GetContentRegionAvail().X - labelCol - browseWidth - openWidth - spacing * 3;
 
-        PathRow("Source Folder:",    "##source",    _sourceFolder,    "Select Source Folder",    labelCol, inputWidth, browseWidth,
-            required: true);
-        ImGui.SetCursorPosX(labelCol);
-        ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
-        ImGui.SameLine();
-        ImGui.Checkbox("Infer missing dates from neighbours", ref _inferMissingDates);
-        ImGui.SameLine();
-        ImGui.Checkbox("Skip already-processed files", ref _skipProcessed);
-        PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth,
-            required: true);
-        PathRow("Processed Folder:", "##processed", _processedFolder, "Select Processed Folder", labelCol, inputWidth, browseWidth,
-            required: false);
-        PathRow("Failed Folder:",    "##failed",    _failedFolder,    "Select Failed Folder",    labelCol, inputWidth, browseWidth,
-            required: false);
+        PathRow("Source Folder:",    "##source",    _sourceFolder,    "Select Source Folder",    labelCol, inputWidth, browseWidth, openWidth,
+            required: true,  hint: "required");
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Infer missing dates from neighbours", ref _inferMissingDates);
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Skip already-processed files", ref _skipProcessed);
+        PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth, openWidth,
+            required: true,  hint: "required");
+        PathRow("Failed Folder:",    "##failed",    _failedFolder,    "Select Failed Folder",    labelCol, inputWidth, browseWidth, openWidth,
+            required: true,  hint: "required");
+        PathRow("Processed Folder:", "##processed", _processedFolder, "Select Processed Folder", labelCol, inputWidth, browseWidth, openWidth,
+            required: false, hint: "optional");
 
         ImGui.Spacing();
 
@@ -674,11 +696,13 @@ public class AppWindow : Win32GameWindow
         if (string.IsNullOrWhiteSpace(export))
             errors.Add("Export folder is required.");
 
+        if (string.IsNullOrWhiteSpace(failed))
+            errors.Add("Failed folder is required.");
+        else if (!Directory.Exists(failed))
+            errors.Add($"Failed folder not found: {failed}");
+
         if (!string.IsNullOrWhiteSpace(processed) && !Directory.Exists(processed))
             errors.Add($"Processed folder path not found: {processed}");
-
-        if (!string.IsNullOrWhiteSpace(failed) && !Directory.Exists(failed))
-            errors.Add($"Failed folder path not found: {failed}");
 
         return errors.Count == 0;
     }
@@ -766,7 +790,8 @@ public class AppWindow : Win32GameWindow
     }
 
     private static void PathRow(string label, string id, byte[] buffer, string browseTitle,
-        float labelCol, float inputWidth, float browseWidth, bool required)
+        float labelCol, float inputWidth, float browseWidth, float openWidth,
+        bool required, string hint = "")
     {
         string current = ReadString(buffer);
         bool isEmpty   = string.IsNullOrWhiteSpace(current);
@@ -788,6 +813,89 @@ public class AppWindow : Win32GameWindow
 
         if (highlight)
             ImGui.PopStyleColor();
+
+        ImGui.SameLine();
+        bool canOpen = !isEmpty && Directory.Exists(current);
+        if (!canOpen) ImGui.BeginDisabled();
+        if (ImGui.Button($"Open##{id}", new SysVec2(openWidth, 0)))
+            OpenFolder(current);
+        if (!canOpen) ImGui.EndDisabled();
+
+        if (hint.Length > 0)
+        {
+            ImGui.SameLine();
+            bool isWarning = required && isEmpty;
+            var hintColor = isWarning
+                ? new SysVec4(1f, 0.45f, 0.45f, 1f)
+                : new SysVec4(0.45f, 0.45f, 0.45f, 1f);
+            ImGui.TextColored(hintColor, hint);
+        }
+    }
+
+    // ── DockBuilder P/Invoke — not exposed by ImGui.NET wrapper ─────────────
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern void igDockBuilderRemoveNode(uint nodeId);
+
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern uint igDockBuilderAddNode(uint nodeId, int flags);
+
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern void igDockBuilderSetNodeSize(uint nodeId, SysVec2 size);
+
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern unsafe void igDockBuilderSplitNode(uint nodeId, ImGuiDir splitDir,
+        float sizeRatio, uint* outAtDir, uint* outOpposite);
+
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern unsafe void igDockBuilderDockWindow(byte* windowName, uint nodeId);
+
+    [System.Runtime.InteropServices.DllImport("cimgui",
+        CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl)]
+    private static extern void igDockBuilderFinish(uint nodeId);
+
+    private static unsafe void DockBuilderDockWindow(string name, uint nodeId)
+    {
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(name + "\0");
+        fixed (byte* ptr = bytes)
+            igDockBuilderDockWindow(ptr, nodeId);
+    }
+
+    private static unsafe void InitDefaultDockLayout(uint dockspaceId, SysVec2 size)
+    {
+        igDockBuilderRemoveNode(dockspaceId);
+        igDockBuilderAddNode(dockspaceId, 0);
+        igDockBuilderSetNodeSize(dockspaceId, size);
+
+        // Carve a bottom strip for Verification (~28% height)
+        uint nodeBottom, nodeTop;
+        igDockBuilderSplitNode(dockspaceId, ImGuiDir.Down, 0.28f, &nodeBottom, &nodeTop);
+
+        // Split the top area: Processing on left (~55%), History+DBHistory on right
+        uint nodeLeft, nodeRight;
+        igDockBuilderSplitNode(nodeTop, ImGuiDir.Right, 0.45f, &nodeRight, &nodeLeft);
+
+        DockBuilderDockWindow("Processing",  nodeLeft);
+        DockBuilderDockWindow("History",     nodeRight);
+        DockBuilderDockWindow("DB History",  nodeRight);  // tabs with History
+        DockBuilderDockWindow("Verification", nodeBottom);
+
+        igDockBuilderFinish(dockspaceId);
+    }
+
+    private static void OpenFolder(string path)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo("explorer.exe", $"\"{path}\"")
+                { UseShellExecute = true });
+        }
+        catch { /* non-fatal */ }
     }
 
     private static void BrowseFolder(byte[] buffer, string title)

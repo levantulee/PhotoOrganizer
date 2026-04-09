@@ -497,3 +497,5 @@ D:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Release\net8.0-windows\win-x64\refi
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Release\net8.0-windows\win-x64\PhotoOrganizer.pdb
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Release\net8.0-windows\win-x64\PhotoOrganizer.genruntimeconfig.cache
 D:\Dev_own\PhotoOrganizer\PhotoOrganizer\obj\Release\net8.0-windows\win-x64\ref\PhotoOrganizer.dll
+D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Release\net8.0-windows\win-x64\README.md
+D:\Dev_own\PhotoOrganizer\PhotoOrganizer\bin\Release\net8.0-windows\win-x64\LICENSE
