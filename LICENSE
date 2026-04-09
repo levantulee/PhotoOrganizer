@@ -1,21 +1,88 @@
-MIT License
+Custom Non-Commercial Attribution License
 
-Copyright (c) 2026 Simon Rozner
+Copyright (c) [2026] Simon Rozner <roznersimon@gmail.com>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license supersedes and replaces all prior licenses, notices, or terms previously
+associated with this software or any earlier versions thereof. Any previous license
+granted for this software is hereby revoked and of no further effect.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software for **non-commercial purposes only**, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+1. **Attribution Requirement**: The above copyright notice, this permission notice, SIMON ROZNER as the author, and a direct hyperlink to the original repository at https://github.com/levantulee/LootboxSystem must be clearly included in all copies or substantial portions of the Software, in all derivative works, and in any project documentation or user-facing materials where the Software is used.
+
+2. **Non-Commercial Use Only**: The Software may not be used, distributed, sublicensed, sold, rented, leased, hosted for profit, or incorporated into any commercial products, services, or activities generating revenue. "Commercial" includes any use by businesses, organizations, or individuals for monetary gain, advertising, or professional services.
+
+   **Commercial Licensing**: If you wish to use this Software or its source code for commercial purposes, you must obtain a separate written commercial license. To inquire, contact Simon Rozner at roznersimon@gmail.com.
+
+3. Redistributions of source code must retain the above copyright notice, this list of conditions, and the attribution hyperlink exactly as provided.
+
+4. Redistributions in binary form must reproduce the above copyright notice, this list of conditions, and the attribution hyperlink in the documentation and/or other materials provided with the distribution.
+
+5. **Ports and Language Conversions**: Any port, translation, adaptation, or conversion of the Software to other programming languages, frameworks, or formats constitutes a derivative work and is subject to all conditions of this license, including the non-commercial restriction and attribution requirements.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+Third-Party Libraries
+---------------------
+
+This software makes use of the following open-source libraries. Each is governed by its own license. It is the sole responsibility of any licensee — commercial or otherwise — to review, comply with, and obtain any necessary permissions under these third-party licenses independently of any license granted herein.
+
+1. ImGui.NET
+   License: MIT
+   https://github.com/ImGuiNET/ImGui.NET
+
+   Wraps Dear ImGui (also MIT):
+   https://github.com/ocornut/imgui
+
+2. OpenTK
+   License: MIT
+   https://github.com/opentk/opentk
+
+3. Newtonsoft.Json
+   License: MIT
+   https://github.com/JamesNK/Newtonsoft.Json
+
+4. Microsoft.Data.Sqlite
+   License: MIT
+   https://github.com/dotnet/efcore
+
+   Wraps SQLite, which is released into the public domain:
+   https://www.sqlite.org/copyright.html
+
+5. Magick.NET
+   License: Apache License 2.0
+   https://github.com/dlemstra/Magick.NET
+
+   Wraps ImageMagick, which is licensed under the ImageMagick License (permissive, commercial use permitted):
+   https://imagemagick.org/script/license.php
+
+6. FFMpegCore
+   License: MIT
+   https://github.com/rosenbjerg/FFMpegCore
+
+   *** IMPORTANT — FFmpeg Binary License ***
+   FFMpegCore is a .NET wrapper around the FFmpeg command-line binary. FFmpeg itself is
+   NOT covered by the MIT license of FFMpegCore. Depending on the build configuration of
+   the FFmpeg binary in use, FFmpeg is licensed under either:
+
+     - GNU Lesser General Public License (LGPL) v2.1 or later
+       https://www.gnu.org/licenses/lgpl-2.1.html
+     or
+     - GNU General Public License (GPL) v2 or later
+       https://www.gnu.org/licenses/gpl-2.0.html
+
+   LGPL builds permit commercial use subject to dynamic-linking and user-replacement
+   requirements. GPL builds impose copyleft obligations on the entire combined work.
+   Most commonly distributed pre-built FFmpeg binaries are LGPL; however this varies
+   by source and platform.
+
+   It is the licensee's sole responsibility to:
+     (a) determine the license of the specific FFmpeg binary they use or distribute,
+     (b) comply with all obligations imposed by that license, and
+     (c) obtain any separate commercial permissions from the FFmpeg project if required.
+
+   The author of this software makes no representation or warranty regarding FFmpeg
+   license compliance and accepts no liability in connection with the licensee's use
+   of FFmpeg.

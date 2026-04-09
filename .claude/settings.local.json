@@ -16,7 +16,8 @@
       "Bash(echo \"exit=$?\")",
       "Bash(grep -E '\\\\.\\(exe|dll\\)$')",
       "Bash(./PhotoOrganizer.exe)",
-      "Bash(echo \"Exit: $?\")"
+      "Bash(echo \"Exit: $?\")",
+      "Bash(dotnet list:*)"
     ]
   }
 }
