@@ -330,13 +330,14 @@ public class AppWindow : Win32GameWindow
 
         ImGui.Spacing();
 
-        // Parallel cores slider
+        // Parallel cores slider — adjustable before AND during a run
         ImGui.Text("Threads:");
         ImGui.SameLine(labelCol);
         ImGui.SetNextItemWidth(200);
-        ImGui.SliderInt("##cores", ref _coreCount, 1, _maxCores);
+        if (ImGui.SliderInt("##cores", ref _coreCount, 1, _maxCores) && _isRunning)
+            _processor?.SetParallelism(_coreCount);
         ImGui.SameLine();
-        ImGui.TextDisabled($"(of {_maxCores} logical cores)");
+        ImGui.TextDisabled(_isRunning ? $"(live — of {_maxCores} cores)" : $"(of {_maxCores} logical cores)");
 
         ImGui.Spacing();
 

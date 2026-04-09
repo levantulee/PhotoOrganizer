@@ -32,10 +32,20 @@ public class Processor
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim>
         _folderSemaphores = new(StringComparer.OrdinalIgnoreCase);
 
+    // Dynamic concurrency throttle — replaced each run, adjusted at any time during a run.
+    private DynamicThrottle? _throttle;
+
     public bool IsPaused => !_pauseGate.IsSet;
 
     public void Pause()  => _pauseGate.Reset();
     public void Resume() => _pauseGate.Set();
+
+    /// <summary>
+    /// Changes the number of concurrent conversions while a run is in progress.
+    /// Safe to call from any thread at any time.
+    /// Reducing closes slots as workers finish their current file; increasing opens slots immediately.
+    /// </summary>
+    public void SetParallelism(int count) => _throttle?.SetCount(count);
 
     public event Action<ProcessResult>? Progress;
 
@@ -52,27 +62,93 @@ public class Processor
 
         _folderInferenceCache.Clear();
         _folderSemaphores.Clear();
+        _throttle = new DynamicThrottle(opts.Parallelism);
 
-        // Resolve and convert each file on the fly. If a file has no date and inference is
-        // enabled, we lazily scan only that file's folder (once per folder) and infer.
-        await Parallel.ForEachAsync(files,
-            new ParallelOptions { MaxDegreeOfParallelism = opts.Parallelism, CancellationToken = ct },
-            async (file, token) =>
+        // Each file acquires a slot from the throttle before doing any work.
+        // The throttle count can be raised or lowered at any time via SetParallelism().
+        var tasks = files.Select(async file =>
+        {
+            await _throttle.WaitAsync(ct);
+            try
             {
-                _pauseGate.Wait(token);
-                token.ThrowIfCancellationRequested();
+                _pauseGate.Wait(ct);
+                ct.ThrowIfCancellationRequested();
 
                 var entry = _metadata.Resolve(file);
 
                 if (entry.DateIsUnknown && opts.InferMissingDates)
-                    await TryInferDateFromFolderAsync(entry, token);
+                    await TryInferDateFromFolderAsync(entry, ct);
 
-                Progress?.Invoke(await ProcessFileAsync(entry, opts, token));
-            });
+                Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+            }
+            finally
+            {
+                _throttle.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
 
         // Release inference cache memory once the run is done
         _folderInferenceCache.Clear();
         _folderSemaphores.Clear();
+        _throttle = null;
+    }
+
+    // ── Dynamic concurrency throttle ──────────────────────────────────────────
+
+    /// <summary>
+    /// A semaphore whose count can be raised or lowered at runtime.
+    /// Raising: immediately releases extra permits so waiting tasks can start.
+    /// Lowering: absorbs the next N releases so slots drain naturally as workers finish.
+    /// </summary>
+    private sealed class DynamicThrottle
+    {
+        private readonly SemaphoreSlim _sem;
+        private int _current;
+        private int _toAbsorb;
+        private readonly object _lock = new();
+
+        public DynamicThrottle(int initial)
+        {
+            _current = Math.Max(1, initial);
+            _sem = new SemaphoreSlim(_current, 1024);
+        }
+
+        public Task WaitAsync(CancellationToken ct) => _sem.WaitAsync(ct);
+
+        public void Release()
+        {
+            lock (_lock)
+            {
+                if (_toAbsorb > 0) { _toAbsorb--; return; }
+                _sem.Release();
+            }
+        }
+
+        public void SetCount(int newCount)
+        {
+            newCount = Math.Max(1, newCount);
+            lock (_lock)
+            {
+                int diff = newCount - _current;
+                _current = newCount;
+
+                if (diff > 0)
+                {
+                    // Cancel pending absorptions first, then release any remainder
+                    int cancel = Math.Min(_toAbsorb, diff);
+                    _toAbsorb -= cancel;
+                    diff      -= cancel;
+                    if (diff > 0) _sem.Release(diff);
+                }
+                else if (diff < 0)
+                {
+                    // Schedule absorptions — slots drain as workers finish
+                    _toAbsorb += -diff;
+                }
+            }
+        }
     }
 
     /// <summary>
