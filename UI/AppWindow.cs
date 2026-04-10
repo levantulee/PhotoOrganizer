@@ -806,7 +806,7 @@ public class AppWindow : Win32GameWindow
         ImGui.Text(label);
         ImGui.SameLine(labelCol);
         ImGui.SetNextItemWidth(inputWidth);
-        ImGui.InputText(id, buffer, (uint)buffer.Length);
+        ImGui.InputTextWithHint(id, hint, buffer, (uint)buffer.Length);
         ImGui.SameLine();
         if (ImGui.Button($"Browse##{id}", new SysVec2(browseWidth, 0)))
             BrowseFolder(buffer, browseTitle);
@@ -820,16 +820,6 @@ public class AppWindow : Win32GameWindow
         if (ImGui.Button($"Open##{id}", new SysVec2(openWidth, 0)))
             OpenFolder(current);
         if (!canOpen) ImGui.EndDisabled();
-
-        if (hint.Length > 0)
-        {
-            ImGui.SameLine();
-            bool isWarning = required && isEmpty;
-            var hintColor = isWarning
-                ? new SysVec4(1f, 0.45f, 0.45f, 1f)
-                : new SysVec4(0.45f, 0.45f, 0.45f, 1f);
-            ImGui.TextColored(hintColor, hint);
-        }
     }
 
     // ── DockBuilder P/Invoke — not exposed by ImGui.NET wrapper ─────────────
