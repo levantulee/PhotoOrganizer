@@ -806,7 +806,9 @@ public class AppWindow : Win32GameWindow
         ImGui.Text(label);
         ImGui.SameLine(labelCol);
         ImGui.SetNextItemWidth(inputWidth);
-        ImGui.InputTextWithHint(id, hint, buffer, (uint)buffer.Length);
+        string inputStr = current;
+        if (ImGui.InputTextWithHint(id, hint, ref inputStr, (uint)buffer.Length))
+            WriteString(buffer, inputStr);
         ImGui.SameLine();
         if (ImGui.Button($"Browse##{id}", new SysVec2(browseWidth, 0)))
             BrowseFolder(buffer, browseTitle);
