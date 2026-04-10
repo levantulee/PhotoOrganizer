@@ -20,7 +20,8 @@
       "Bash(dotnet list:*)",
       "Bash(xargs grep:*)",
       "Bash(dotnet-ildasm ImGui.NET.dll)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(grep -E '\\\\.cs$')"
     ]
   }
 }

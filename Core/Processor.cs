@@ -48,6 +48,7 @@ public class Processor
     public void SetParallelism(int count) => _throttle?.SetCount(count);
 
     public event Action<ProcessResult>? Progress;
+    public event Action<string>? FileStarted;
 
     public async Task RunAsync(ProcessorOptions opts, CancellationToken ct)
     {
@@ -82,6 +83,7 @@ public class Processor
                 {
                     _pauseGate.Wait(ct);
                     ct.ThrowIfCancellationRequested();
+                    FileStarted?.Invoke(file);
 
                     var entry = _metadata.Resolve(file);
 

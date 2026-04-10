@@ -58,6 +58,7 @@ public class AppWindow : Win32GameWindow
     private Processor? _processor;
     private readonly RunStats _stats = new();
     private readonly List<(string text, ResultStatus? status)> _log = new();
+    private readonly HashSet<string> _activeFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _logLock = new();
     private bool _autoScroll = true;
 
@@ -450,7 +451,11 @@ public class AppWindow : Win32GameWindow
         ImGui.Checkbox("Auto-scroll", ref _autoScroll);
 
         // ── Log lines ─────────────────────────────────────────────────────────
-        float logHeight = ImGui.GetContentRegionAvail().Y - 4;
+        bool showActive = _isRunning;
+        float lineH = ImGui.GetTextLineHeightWithSpacing();
+        int activeMaxRows = showActive ? Math.Min(_coreCount, 6) : 0;
+        float activeH = showActive ? lineH * (activeMaxRows + 1) + ImGui.GetStyle().WindowPadding.Y * 2 + ImGui.GetStyle().ItemSpacing.Y + 6 : 0f;
+        float logHeight = ImGui.GetContentRegionAvail().Y - activeH - 4;
         ImGui.BeginChild("##log", new SysVec2(0, logHeight), ImGuiChildFlags.Border,
             ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -519,6 +524,23 @@ public class AppWindow : Win32GameWindow
             ImGui.SetScrollHereY(1.0f);
 
         ImGui.EndChild();
+
+        // ── Active files section ──────────────────────────────────────────────
+        if (showActive)
+        {
+            string[] active;
+            lock (_logLock)
+                active = _activeFiles.Count > 0
+                    ? _activeFiles.Select(p => Path.GetFileName(p)!).ToArray()
+                    : Array.Empty<string>();
+
+            ImGui.Separator();
+            ImGui.BeginChild("##activefiles", new SysVec2(0, activeH - ImGui.GetStyle().ItemSpacing.Y - 3), ImGuiChildFlags.None);
+            ImGui.TextDisabled($"Converting ({active.Length}):");
+            foreach (var name in active.Take(activeMaxRows))
+                ImGui.TextColored(new SysVec4(0.5f, 0.85f, 1f, 1f), $"  \u25B6 {name}");
+            ImGui.EndChild();
+        }
     }
 
     private void BuildHistoryTab()
@@ -626,6 +648,8 @@ public class AppWindow : Win32GameWindow
 
         _processor = new Processor();
         _processor.Progress += OnProgress;
+        _processor.FileStarted += path => { lock (_logLock) _activeFiles.Add(path); };
+        lock (_logLock) _activeFiles.Clear();
         var ct = _cts.Token;
 
         Task.Run(async () =>
@@ -647,6 +671,7 @@ public class AppWindow : Win32GameWindow
             {
                 _isRunning = false;
                 _isPaused = false;
+                lock (_logLock) _activeFiles.Clear();
             }
         }, ct);
     }
@@ -726,6 +751,7 @@ public class AppWindow : Win32GameWindow
 
         lock (_logLock)
         {
+            _activeFiles.Remove(result.Entry.SourcePath);
             switch (result.Status)
             {
                 case ResultStatus.Success:
