@@ -34,7 +34,7 @@ public class VideoConverter
         return IsFfmpegAvailable;
     });
 
-    public async Task ConvertToMp4Async(string inputPath, string outputPath, DateTime? creationTime, CancellationToken ct)
+    public async Task ConvertToMp4Async(string inputPath, string outputPath, DateTime? creationTime, int threads, CancellationToken ct)
     {
         if (!IsFfmpegAvailable)
             throw new InvalidOperationException("FFmpeg not found on PATH.");
@@ -46,7 +46,8 @@ public class VideoConverter
                 options
                     .WithVideoCodec(VideoCodec.LibX264)
                     .WithAudioCodec(AudioCodec.Aac)
-                    .WithFastStart();
+                    .WithFastStart()
+                    .WithCustomArgument($"-threads {threads}");
 
                 if (creationTime.HasValue)
                 {

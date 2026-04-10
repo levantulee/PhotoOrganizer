@@ -35,6 +35,11 @@ public class Processor
     // Dynamic concurrency throttle — replaced each run, adjusted at any time during a run.
     private DynamicThrottle? _throttle;
 
+    // Video exclusivity: one video at a time; images pause while a video converts.
+    private readonly ManualResetEventSlim _videoPauseGate = new(true); // open = images may run
+    private readonly SemaphoreSlim _videoMutex = new(1, 1);            // serialise video conversions
+    private int _activeImageCount;                                      // images past the gate
+
     public bool IsPaused => !_pauseGate.IsSet;
 
     public void Pause()  => _pauseGate.Reset();
@@ -74,28 +79,54 @@ public class Processor
         // thread-pool thread via Task.Run so CPU-bound work runs truly in parallel.
         // Without Task.Run the async lambdas execute synchronously on the caller's
         // thread until the first genuine I/O yield, making all conversions sequential.
+        //
+        // Videos are treated differently: they release the image-throttle slot early,
+        // serialise through _videoMutex, pause images, drain any in-flight image work,
+        // then convert using the full configured thread count.
         var tasks = files.Select(async file =>
         {
             await _throttle.WaitAsync(ct);
+            bool throttleReleased = false;
             try
             {
                 await Task.Run(async () =>
                 {
                     _pauseGate.Wait(ct);
                     ct.ThrowIfCancellationRequested();
-                    FileStarted?.Invoke(file);
 
                     var entry = _metadata.Resolve(file);
 
                     if (entry.DateIsUnknown && opts.InferMissingDates)
                         await TryInferDateFromFolderAsync(entry, ct);
 
-                    Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+                    if (entry.Category == FileCategory.Video)
+                    {
+                        // Give the image-throttle slot back — video runs outside the slot budget.
+                        _throttle.Release();
+                        throttleReleased = true;
+                        FileStarted?.Invoke(file);
+                        Progress?.Invoke(await RunVideoExclusiveAsync(entry, opts, ct));
+                    }
+                    else
+                    {
+                        // Block here (without consuming extra CPU) while a video is converting.
+                        _videoPauseGate.Wait(ct);
+                        Interlocked.Increment(ref _activeImageCount);
+                        try
+                        {
+                            FileStarted?.Invoke(file);
+                            Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+                        }
+                        finally
+                        {
+                            Interlocked.Decrement(ref _activeImageCount);
+                        }
+                    }
                 }, ct);
             }
             finally
             {
-                _throttle.Release();
+                if (!throttleReleased) _throttle.Release();
             }
         });
 
@@ -160,6 +191,52 @@ public class Processor
                     _toAbsorb += -diff;
                 }
             }
+        }
+    }
+
+    // ── Video-exclusive conversion ────────────────────────────────────────────
+
+    /// <summary>
+    /// Runs one video conversion with exclusive access to all configured threads.
+    /// <list type="bullet">
+    ///   <item>Serialises with other videos via <c>_videoMutex</c>.</item>
+    ///   <item>Closes <c>_videoPauseGate</c> so no new image processing starts.</item>
+    ///   <item>Drains any images that are already past the gate (up to 30 s).</item>
+    ///   <item>Restores the gate and releases the mutex when done.</item>
+    /// </list>
+    /// </summary>
+    private async Task<ProcessResult> RunVideoExclusiveAsync(FileEntry entry, ProcessorOptions opts, CancellationToken ct)
+    {
+        await _videoMutex.WaitAsync(ct);
+        try
+        {
+            // Prevent new images from starting
+            _videoPauseGate.Reset();
+
+            // Wait for images that are already in-flight to finish (max 30 s)
+            long deadline = Environment.TickCount64 + 30_000;
+            while (Volatile.Read(ref _activeImageCount) > 0 && Environment.TickCount64 < deadline)
+            {
+                ct.ThrowIfCancellationRequested();
+                await Task.Delay(50, ct);
+            }
+
+            // Restore ImageMagick thread limit after draining — FFmpeg is a separate process
+            // and is unaffected, so it will naturally use opts.Parallelism threads.
+            ResourceLimits.Thread = (ulong)opts.Parallelism;
+            try
+            {
+                return await ProcessFileAsync(entry, opts, ct);
+            }
+            finally
+            {
+                ResourceLimits.Thread = 1;
+            }
+        }
+        finally
+        {
+            _videoPauseGate.Set();   // let images resume
+            _videoMutex.Release();
         }
     }
 
@@ -259,7 +336,7 @@ public class Processor
                     result.Message = "FFmpeg not available — skipped video";
                     return result;
                 }
-                await _video.ConvertToMp4Async(filePath, outputPath, entry.ResolvedDate, ct);
+                await _video.ConvertToMp4Async(filePath, outputPath, entry.ResolvedDate, opts.Parallelism, ct);
                 result.WasConverted = true;
 
                 // Verify
