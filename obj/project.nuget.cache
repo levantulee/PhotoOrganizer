@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "wmGCn4SzKtU=",
+  "dgSpecHash": "3jiFGbuUbT0=",
   "success": true,
   "projectFilePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
   "expectedPackageFiles": [
@@ -11,6 +11,7 @@
     "C:\\Users\\levan\\.nuget\\packages\\magick.net.core\\13.10.0\\magick.net.core.13.10.0.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.25\\microsoft.net.illink.tasks.8.0.25.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\opentk\\4.9.3\\opentk.4.9.3.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\opentk.audio.openal\\4.9.3\\opentk.audio.openal.4.9.3.nupkg.sha512",
@@ -33,7 +34,11 @@
     "C:\\Users\\levan\\.nuget\\packages\\system.numerics.vectors\\4.4.0\\system.numerics.vectors.4.4.0.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "C:\\Users\\levan\\.nuget\\packages\\system.text.encodings.web\\9.0.2\\system.text.encodings.web.9.0.2.nupkg.sha512",
-    "C:\\Users\\levan\\.nuget\\packages\\system.text.json\\9.0.2\\system.text.json.9.0.2.nupkg.sha512"
+    "C:\\Users\\levan\\.nuget\\packages\\system.text.json\\9.0.2\\system.text.json.9.0.2.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.25\\microsoft.netcore.app.runtime.win-x64.8.0.25.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.25\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.25.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.25\\microsoft.aspnetcore.app.runtime.win-x64.8.0.25.nupkg.sha512",
+    "C:\\Users\\levan\\.nuget\\packages\\microsoft.netcore.app.crossgen2.win-x64\\8.0.25\\microsoft.netcore.app.crossgen2.win-x64.8.0.25.nupkg.sha512"
   ],
   "logs": [
     {
@@ -45,7 +50,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -57,7 +63,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -69,7 +76,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -81,7 +89,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -93,7 +102,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -105,7 +115,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -117,7 +128,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -129,7 +141,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -141,7 +154,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -153,7 +167,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -165,7 +180,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -177,7 +193,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -189,7 +206,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -201,7 +219,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -213,7 +232,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -225,7 +245,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -237,7 +258,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -249,7 +271,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -261,7 +284,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -273,7 +297,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -285,7 +310,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -297,7 +323,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -309,7 +336,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -321,7 +349,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -333,7 +362,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -345,7 +375,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -357,7 +388,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -369,7 +401,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -381,7 +414,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -393,7 +427,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -405,7 +440,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -417,7 +453,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -429,7 +466,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -441,7 +479,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -453,7 +492,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -465,7 +505,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -477,7 +518,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -489,7 +531,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -501,7 +544,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -513,7 +557,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -525,7 +570,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -537,7 +583,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -549,7 +596,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -561,7 +609,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -573,7 +622,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -585,7 +635,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -597,7 +648,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -609,7 +661,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -621,7 +674,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -633,7 +687,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -645,7 +700,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -657,7 +713,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -669,7 +726,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -681,7 +739,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -693,7 +752,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -705,7 +765,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -717,7 +778,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -729,7 +791,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -741,7 +804,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -753,7 +817,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -765,7 +830,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -777,7 +843,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -789,7 +856,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -801,7 +869,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -813,7 +882,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -825,7 +895,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -837,7 +908,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -849,7 +921,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -861,7 +934,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -873,7 +947,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -885,7 +960,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -897,7 +973,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -909,7 +986,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -921,7 +999,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -933,7 +1012,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -945,7 +1025,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -957,7 +1038,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -969,7 +1051,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -981,7 +1064,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -993,7 +1077,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -1005,7 +1090,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     },
     {
@@ -1017,7 +1103,8 @@
       "filePath": "D:\\Dev_own\\PhotoOrganizer\\PhotoOrganizer\\PhotoOrganizer.csproj",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
       ]
     }
   ]
