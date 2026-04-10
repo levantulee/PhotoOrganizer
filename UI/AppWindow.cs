@@ -41,6 +41,7 @@ public class AppWindow : Win32GameWindow
     private bool _includeSubfolders = true;
     private bool _inferMissingDates = true;
     private bool _skipProcessed = true;
+    private bool _videoPriority = true;
     private static readonly int _maxCores = Environment.ProcessorCount;
     private int _coreCount = Math.Max(1, Math.Min(8, Environment.ProcessorCount - 1));
 
@@ -97,6 +98,7 @@ public class AppWindow : Win32GameWindow
             _includeSubfolders = s.IncludeSubfolders;
             _inferMissingDates = s.InferMissingDates;
             _skipProcessed     = s.SkipProcessed;
+            _videoPriority     = s.VideoPriority;
             _coreCount         = Math.Max(1, Math.Min(_maxCores, s.CoreCount));
         }
         catch { /* ignore corrupt settings */ }
@@ -118,6 +120,7 @@ public class AppWindow : Win32GameWindow
                 IncludeSubfolders  = _includeSubfolders,
                 InferMissingDates  = _inferMissingDates,
                 SkipProcessed      = _skipProcessed,
+                VideoPriority      = _videoPriority,
                 CoreCount          = _coreCount
             };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(s));
@@ -135,6 +138,7 @@ public class AppWindow : Win32GameWindow
         public bool    IncludeSubfolders  { get; set; } = true;
         public bool    InferMissingDates  { get; set; } = true;
         public bool    SkipProcessed      { get; set; } = true;
+        public bool    VideoPriority      { get; set; } = true;
         public int     CoreCount          { get; set; } = 1;
     }
 
@@ -344,6 +348,11 @@ public class AppWindow : Win32GameWindow
         ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
         ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Infer missing dates from neighbours", ref _inferMissingDates);
         ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Skip already-processed files", ref _skipProcessed);
+        ImGui.SetCursorPosX(labelCol);
+        ImGui.Checkbox("Video priority mode", ref _videoPriority);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("ON: images pause while each video converts (full threads, one video at a time).\nOFF: videos share the thread pool with images (better throughput for video-heavy batches).");
+
         PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth, openWidth,
             required: true,  hint: "required");
         PathRow("Failed Folder:",    "##failed",    _failedFolder,    "Select Failed Folder",    labelCol, inputWidth, browseWidth, openWidth,
@@ -642,6 +651,7 @@ public class AppWindow : Win32GameWindow
             FolderMode        = _folderMode == 0 ? FileOrganizer.FolderMode.YearMonth : FileOrganizer.FolderMode.YearOnly,
             IncludeSubfolders = _includeSubfolders,
             InferMissingDates = _inferMissingDates,
+            VideoPriority     = _videoPriority,
             AlreadyProcessed  = alreadyProcessed,
             Parallelism       = _coreCount
         };

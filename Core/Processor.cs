@@ -13,6 +13,12 @@ public class ProcessorOptions
     public bool IncludeSubfolders { get; set; } = true;
     public int Parallelism { get; set; } = Math.Max(1, Environment.ProcessorCount - 1);
     public bool InferMissingDates { get; set; } = true;
+    /// <summary>
+    /// When true, each video conversion pauses all image work, drains in-flight images,
+    /// then runs FFmpeg with the full <see cref="Parallelism"/> thread count exclusively.
+    /// When false, videos share the throttle with images (one video at a time via mutex).
+    /// </summary>
+    public bool VideoPriority { get; set; } = true;
     /// <summary>Source paths already successfully processed; these files are skipped.</summary>
     public HashSet<string>? AlreadyProcessed { get; set; }
 }
@@ -101,16 +107,37 @@ public class Processor
 
                     if (entry.Category == FileCategory.Video)
                     {
-                        // Give the image-throttle slot back — video runs outside the slot budget.
-                        _throttle.Release();
-                        throttleReleased = true;
-                        FileStarted?.Invoke(file);
-                        Progress?.Invoke(await RunVideoExclusiveAsync(entry, opts, ct));
+                        if (opts.VideoPriority)
+                        {
+                            // Priority mode: release the image-throttle slot so images aren't
+                            // starved while we wait for the video mutex + image drain.
+                            _throttle.Release();
+                            throttleReleased = true;
+                            FileStarted?.Invoke(file);
+                            Progress?.Invoke(await RunVideoExclusiveAsync(entry, opts, ct));
+                        }
+                        else
+                        {
+                            // Normal mode: video competes for a throttle slot like images do,
+                            // but videos are still serialised (one at a time) via the mutex.
+                            await _videoMutex.WaitAsync(ct);
+                            try
+                            {
+                                FileStarted?.Invoke(file);
+                                Progress?.Invoke(await ProcessFileAsync(entry, opts, ct));
+                            }
+                            finally
+                            {
+                                _videoMutex.Release();
+                            }
+                        }
                     }
                     else
                     {
-                        // Block here (without consuming extra CPU) while a video is converting.
-                        _videoPauseGate.Wait(ct);
+                        // In priority mode, block if a video is currently converting.
+                        if (opts.VideoPriority)
+                            _videoPauseGate.Wait(ct);
+
                         Interlocked.Increment(ref _activeImageCount);
                         try
                         {
