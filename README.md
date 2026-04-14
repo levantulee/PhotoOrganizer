@@ -4,6 +4,8 @@ A Windows desktop application that automatically organizes photos and videos int
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue) ![.NET](https://img.shields.io/badge/.NET-8.0-purple) ![License](https://img.shields.io/badge/license-Non--Commercial-orange)
 
+<img width="1920" height="1150" alt="image" src="https://github.com/user-attachments/assets/3fb42a46-8995-4b4f-8eae-30f1eee052b8" />
+
 ---
 
 ## What It Does
