@@ -50,6 +50,17 @@ public sealed class VerificationPanel
 
     // ── Public API ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Programmatically kicks off a scan (e.g. triggered by the processing window).
+    /// Safe to call while a scan is already running — the call is ignored in that case.
+    /// </summary>
+    public void TriggerScan(string sourceFolder, string exportFolder,
+                             string processedFolder, string failedFolder)
+    {
+        if (_scanning) return;
+        StartScan(sourceFolder, exportFolder, processedFolder, failedFolder);
+    }
+
     public void Draw(ref bool show,
                      string sourceFolder, string exportFolder,
                      string processedFolder, string failedFolder)

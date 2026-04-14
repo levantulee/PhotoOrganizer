@@ -21,7 +21,8 @@
       "Bash(xargs grep:*)",
       "Bash(dotnet-ildasm ImGui.NET.dll)",
       "Bash(powershell:*)",
-      "Bash(grep -E '\\\\.cs$')"
+      "Bash(grep -E '\\\\.cs$')",
+      "Bash(taskkill /PID 27756 /F)"
     ]
   }
 }

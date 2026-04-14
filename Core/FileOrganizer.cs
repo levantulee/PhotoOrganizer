@@ -6,32 +6,48 @@ public class FileOrganizer
 {
     public enum FolderMode { YearMonth, YearOnly }
 
-    public string ComputeOutputPath(FileEntry entry, string exportRoot, FolderMode mode, bool isVideo)
+    /// <summary>
+    /// Computes the output path for a file entry.
+    /// <para>
+    /// - <see cref="FileCategory.Video"/>: outputs as <c>.mp4</c> (converted), or original ext when <paramref name="organizeOnlyVideos"/> is true.<br/>
+    /// - <see cref="FileCategory.Image"/> / <see cref="FileCategory.Heic"/>: outputs as <c>.png</c> (converted), or original ext when <paramref name="organizeOnlyPhotos"/> is true.<br/>
+    /// - <see cref="FileCategory.Raw"/>: always keeps original ext, placed in <paramref name="rawSubfolder"/> within <paramref name="exportRoot"/>.<br/>
+    /// - <see cref="FileCategory.PassThrough"/>: always keeps original ext, placed with regular images.
+    /// </para>
+    /// </summary>
+    public string ComputeOutputPath(FileEntry entry, string exportRoot, FolderMode mode,
+        bool organizeOnlyPhotos = false, bool organizeOnlyVideos = false, string rawSubfolder = "_RAW")
     {
-        string ext = isVideo ? ".mp4" : ".png";
+        string srcExt = Path.GetExtension(entry.SourcePath).ToLowerInvariant();
+
+        string ext = entry.Category switch
+        {
+            FileCategory.Video => organizeOnlyVideos ? srcExt : ".mp4",
+            FileCategory.Image or FileCategory.Heic => organizeOnlyPhotos ? srcExt : ".png",
+            _ => srcExt  // Raw, PassThrough: always keep original extension
+        };
+
+        bool isRaw = entry.Category == FileCategory.Raw;
+        string rawFolder = string.IsNullOrWhiteSpace(rawSubfolder) ? "_RAW" : rawSubfolder.Trim();
 
         if (entry.DateIsUnknown || entry.ResolvedDate == null)
         {
-            // Unknown date — preserve original filename in _unknown_date subfolder
-            var unknownDir = Path.Combine(exportRoot, "_unknown_date");
+            var unknownDir = isRaw
+                ? Path.Combine(exportRoot, rawFolder, "_unknown_date")
+                : Path.Combine(exportRoot, "_unknown_date");
             Directory.CreateDirectory(unknownDir);
-            var origName = Path.GetFileName(entry.SourcePath);
-            // Change extension for images
-            if (!isVideo)
-                origName = Path.GetFileNameWithoutExtension(origName) + ".png";
+            var origName = Path.GetFileNameWithoutExtension(entry.SourcePath) + ext;
             return ResolveCollision(Path.Combine(unknownDir, origName));
         }
 
         var date = entry.ResolvedDate.Value;
-        string folder;
-        if (mode == FolderMode.YearMonth)
-        {
-            folder = Path.Combine(exportRoot, date.Year.ToString(), date.Month.ToString("D2"));
-        }
-        else
-        {
-            folder = Path.Combine(exportRoot, date.Year.ToString());
-        }
+        string dateSubPath = mode == FolderMode.YearMonth
+            ? Path.Combine(date.Year.ToString(), date.Month.ToString("D2"))
+            : date.Year.ToString();
+
+        string folder = isRaw
+            ? Path.Combine(exportRoot, rawFolder, dateSubPath)
+            : Path.Combine(exportRoot, dateSubPath);
 
         Directory.CreateDirectory(folder);
 

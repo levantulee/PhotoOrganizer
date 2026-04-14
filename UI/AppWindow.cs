@@ -20,15 +20,10 @@ public class AppWindow : Win32GameWindow
 
     // Panel visibility
     private bool _showProcessing    = true;
-    private bool _showHistory       = true;
     private bool _showExifViewer    = false;
-    private bool _showVerification  = false;
-    private bool _showDbHistory     = false;
+    private bool _showVerification  = true;
+    private bool _showDbHistory     = true;
     private bool _showAbout         = false;
-
-    // History tab state
-    private List<ConversionLog.Entry> _history = new();
-    private bool _historyLoaded = false;
 
     // UI state — folder paths
     private byte[] _sourceFolder = new byte[1024];
@@ -40,8 +35,16 @@ public class AppWindow : Win32GameWindow
     private int _folderMode = 0;
     private bool _includeSubfolders = true;
     private bool _inferMissingDates = true;
+    private bool _useDateFallback = true;
     private bool _skipProcessed = true;
+    private bool _skipDuplicatesByHash = false;
+    private bool _verifyOnStart = true;
     private bool _videoPriority = true;
+    private bool _organizeOnlyPhotos = false;
+    private bool _organizeOnlyVideos = false;
+    private bool _processImages = true;
+    private bool _processVideos = true;
+    private byte[] _rawSubfolderName = new byte[128];
     private static readonly int _maxCores = Environment.ProcessorCount;
     private int _coreCount = Math.Max(1, Math.Min(8, Environment.ProcessorCount - 1));
 
@@ -51,6 +54,9 @@ public class AppWindow : Win32GameWindow
     // Log search / selection
     private byte[] _logFilter = new byte[256];
     private int _selectedLogLine = -1;
+
+    // FFmpeg availability (set after background init check completes)
+    private volatile bool _ffmpegChecked = false;
 
     // Processing state
     private bool _isRunning = false;
@@ -72,6 +78,7 @@ public class AppWindow : Win32GameWindow
     public AppWindow(Action? onReady = null)
     {
         _onReady = onReady;
+        WriteString(_rawSubfolderName, "_RAW");  // default before settings load
         StartupTimer.Log("AppWindow ctor done");
         try { _convLog = new ConversionLog(); } catch { /* DB unavailable */ }
         _dbHistoryPanel.SetLog(_convLog);
@@ -97,8 +104,16 @@ public class AppWindow : Win32GameWindow
             _folderMode        = s.FolderMode;
             _includeSubfolders = s.IncludeSubfolders;
             _inferMissingDates = s.InferMissingDates;
-            _skipProcessed     = s.SkipProcessed;
-            _videoPriority     = s.VideoPriority;
+            _useDateFallback   = s.UseDateFallback;
+            _skipProcessed        = s.SkipProcessed;
+            _skipDuplicatesByHash = s.SkipDuplicatesByHash;
+            _verifyOnStart        = s.VerifyOnStart;
+            _videoPriority        = s.VideoPriority;
+            _organizeOnlyPhotos = s.OrganizeOnlyPhotos;
+            _organizeOnlyVideos = s.OrganizeOnlyVideos;
+            _processImages     = s.ProcessImages;
+            _processVideos     = s.ProcessVideos;
+            WriteString(_rawSubfolderName, string.IsNullOrWhiteSpace(s.RawSubfolderName) ? "_RAW" : s.RawSubfolderName);
             _coreCount         = Math.Max(1, Math.Min(_maxCores, s.CoreCount));
         }
         catch { /* ignore corrupt settings */ }
@@ -119,8 +134,16 @@ public class AppWindow : Win32GameWindow
                 FolderMode      = _folderMode,
                 IncludeSubfolders  = _includeSubfolders,
                 InferMissingDates  = _inferMissingDates,
-                SkipProcessed      = _skipProcessed,
-                VideoPriority      = _videoPriority,
+                UseDateFallback    = _useDateFallback,
+                SkipProcessed         = _skipProcessed,
+                SkipDuplicatesByHash  = _skipDuplicatesByHash,
+                VerifyOnStart         = _verifyOnStart,
+                VideoPriority         = _videoPriority,
+                OrganizeOnlyPhotos = _organizeOnlyPhotos,
+                OrganizeOnlyVideos = _organizeOnlyVideos,
+                ProcessImages      = _processImages,
+                ProcessVideos      = _processVideos,
+                RawSubfolderName   = ReadString(_rawSubfolderName),
                 CoreCount          = _coreCount
             };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(s));
@@ -137,8 +160,16 @@ public class AppWindow : Win32GameWindow
         public int     FolderMode      { get; set; }
         public bool    IncludeSubfolders  { get; set; } = true;
         public bool    InferMissingDates  { get; set; } = true;
-        public bool    SkipProcessed      { get; set; } = true;
-        public bool    VideoPriority      { get; set; } = true;
+        public bool    UseDateFallback    { get; set; } = true;
+        public bool    SkipProcessed         { get; set; } = true;
+        public bool    SkipDuplicatesByHash  { get; set; } = false;
+        public bool    VerifyOnStart         { get; set; } = true;
+        public bool    VideoPriority         { get; set; } = true;
+        public bool    OrganizeOnlyPhotos  { get; set; } = false;
+        public bool    OrganizeOnlyVideos  { get; set; } = false;
+        public bool    ProcessImages      { get; set; } = true;
+        public bool    ProcessVideos      { get; set; } = true;
+        public string  RawSubfolderName   { get; set; } = "_RAW";
         public int     CoreCount          { get; set; } = 1;
     }
 
@@ -179,6 +210,7 @@ public class AppWindow : Win32GameWindow
 
                 StartupTimer.Log("Background: FFmpeg check start");
                 bool ffmpeg = await VideoConverter.CheckFfmpegAsync();
+                _ffmpegChecked = true;
                 StartupTimer.Log($"Background: FFmpeg check done — found={ffmpeg}");
                 AddLog(ffmpeg
                     ? "FFmpeg found. Video conversion enabled."
@@ -258,16 +290,21 @@ public class AppWindow : Win32GameWindow
             if (ImGui.BeginMenu("View"))
             {
                 ImGui.MenuItem("Processing",   null, ref _showProcessing);
-                ImGui.MenuItem("History",      null, ref _showHistory);
+                ImGui.MenuItem("History",      null, ref _showDbHistory);
                 ImGui.MenuItem("EXIF Viewer",  null, ref _showExifViewer);
                 ImGui.MenuItem("Verification", null, ref _showVerification);
-                ImGui.MenuItem("DB History",   null, ref _showDbHistory);
                 ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("Help"))
             {
                 if (ImGui.MenuItem("About"))
                     _showAbout = true;
+                if (_ffmpegChecked && !VideoConverter.IsFfmpegAvailable)
+                {
+                    ImGui.Separator();
+                    if (ImGui.MenuItem("FFmpeg not found — download ffmpeg.org"))
+                        OpenUrl("https://ffmpeg.org/");
+                }
                 ImGui.EndMenu();
             }
             ImGui.EndMenuBar();
@@ -299,25 +336,6 @@ public class AppWindow : Win32GameWindow
             ImGui.End();
         }
 
-        // ── History panel ─────────────────────────────────────────────────────
-        if (_showHistory)
-        {
-            ImGui.SetNextWindowSize(
-                new SysVec2(viewport.WorkSize.X * 0.45f, viewport.WorkSize.Y),
-                ImGuiCond.FirstUseEver);
-            bool prevShow = _showHistory;
-            if (ImGui.Begin("History", ref _showHistory))
-                BuildHistoryTab();
-            ImGui.End();
-
-            if (prevShow && !_showHistory)
-                _historyLoaded = false;
-        }
-        else
-        {
-            _historyLoaded = false;
-        }
-
         // ── EXIF Viewer panel ─────────────────────────────────────────────────
         _exifViewer.Draw(ref _showExifViewer);
 
@@ -347,11 +365,47 @@ public class AppWindow : Win32GameWindow
             required: true,  hint: "required");
         ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Include subfolders", ref _includeSubfolders);
         ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Infer missing dates from neighbours", ref _inferMissingDates);
-        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Skip already-processed files", ref _skipProcessed);
+        ImGui.SetCursorPosX(labelCol + 20f); ImGui.Checkbox("Use file date as fallback (created/modified)", ref _useDateFallback);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("When no EXIF or sidecar date is found, uses the older of the file's\ncreated/modified timestamps. Recorded as 'date inferred' in history.");
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Skip already-processed files (path)", ref _skipProcessed);
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Skip duplicate files (content checksum)", ref _skipDuplicatesByHash);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Computes an MD5 fingerprint of each source file and skips it if the same content\nwas already processed before — even if the file was renamed or moved.");
+
         ImGui.SetCursorPosX(labelCol);
+        ImGui.Checkbox("No conversion — photos", ref _organizeOnlyPhotos);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Copy and rename photos/HEIC without converting to PNG.\nOriginal file extension is preserved.");
+        ImGui.SameLine();
+        ImGui.Checkbox("No conversion — videos", ref _organizeOnlyVideos);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Copy and rename videos without re-encoding with FFmpeg.\nOriginal file extension is preserved.");
+
+        ImGui.SetCursorPosX(labelCol); ImGui.Checkbox("Process images", ref _processImages);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Include photos, HEIC, RAW, GIF, and vector files.");
+        ImGui.SameLine(); ImGui.Checkbox("Process videos", ref _processVideos);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Include video files (MOV, MP4, AVI, MKV, 3GP).");
+
+        // RAW subfolder name input
+        ImGui.Text("RAW subfolder:");
+        ImGui.SameLine(labelCol);
+        ImGui.SetNextItemWidth(160);
+        string rawSubStr = ReadString(_rawSubfolderName);
+        if (ImGui.InputText("##rawsubfolder", ref rawSubStr, (uint)_rawSubfolderName.Length))
+            WriteString(_rawSubfolderName, rawSubStr);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Subfolder within the export folder where RAW, PSD, and XCF files are placed.");
+
+        ImGui.SetCursorPosX(labelCol);
+        bool videoPriorityDisabled = _organizeOnlyVideos;
+        if (videoPriorityDisabled) ImGui.BeginDisabled();
         ImGui.Checkbox("Video priority mode", ref _videoPriority);
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("ON: images pause while each video converts (full threads, one video at a time).\nOFF: videos share the thread pool with images (better throughput for video-heavy batches).");
+        if (videoPriorityDisabled) ImGui.EndDisabled();
 
         PathRow("Export Folder:",    "##export",    _exportFolder,    "Select Export Folder",    labelCol, inputWidth, browseWidth, openWidth,
             required: true,  hint: "required");
@@ -390,6 +444,11 @@ public class AppWindow : Win32GameWindow
         if (!canStart) ImGui.EndDisabled();
 
         ImGui.SameLine();
+        ImGui.Checkbox("Verify on start", ref _verifyOnStart);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Scan folders before and after processing to verify file counts.");
+
+        ImGui.SameLine();
 
         bool canStop = _isRunning;
         if (!canStop) ImGui.BeginDisabled();
@@ -419,13 +478,17 @@ public class AppWindow : Win32GameWindow
 
         // Stats bar
         RunStats stats;
-        lock (_logLock) { stats = new RunStats { Photos = _stats.Photos, Videos = _stats.Videos, Heic = _stats.Heic, Skipped = _stats.Skipped, Errors = _stats.Errors }; }
+        lock (_logLock) { stats = new RunStats { Photos = _stats.Photos, Videos = _stats.Videos, Heic = _stats.Heic, Raw = _stats.Raw, Other = _stats.Other, Skipped = _stats.Skipped, Errors = _stats.Errors }; }
 
         ImGui.Text($"Photos: {stats.Photos}");
         ImGui.SameLine();
         ImGui.Text($"Videos: {stats.Videos}");
         ImGui.SameLine();
         ImGui.Text($"HEIC: {stats.Heic}");
+        ImGui.SameLine();
+        ImGui.Text($"RAW: {stats.Raw}");
+        ImGui.SameLine();
+        ImGui.Text($"Other: {stats.Other}");
         ImGui.SameLine();
         ImGui.Text($"Skipped: {stats.Skipped}");
         ImGui.SameLine();
@@ -481,7 +544,7 @@ public class AppWindow : Win32GameWindow
 
                 if (!isInfo && !isExif)
                 {
-                    if (status == ResultStatus.Success && !_filterOk)   { idx++; continue; }
+                    if ((status == ResultStatus.Success || status == ResultStatus.DateInferred) && !_filterOk) { idx++; continue; }
                     if (status == ResultStatus.Skipped && !_filterSkip) { idx++; continue; }
                     if (status == ResultStatus.Failed  && !_filterErr)  { idx++; continue; }
                 }
@@ -491,10 +554,11 @@ public class AppWindow : Win32GameWindow
                                 isExif  ? "[dbg] " :
                                 status switch
                                 {
-                                    ResultStatus.Success => "[OK]  ",
-                                    ResultStatus.Skipped => "[!!]  ",
-                                    ResultStatus.Failed  => "[XX]  ",
-                                    _                    => "      "
+                                    ResultStatus.Success      => "[OK]  ",
+                                    ResultStatus.DateInferred => "[D~]  ",
+                                    ResultStatus.Skipped      => "[!!]  ",
+                                    ResultStatus.Failed       => "[XX]  ",
+                                    _                         => "      "
                                 };
                 string line = prefix + text;
 
@@ -508,10 +572,11 @@ public class AppWindow : Win32GameWindow
                 var grey    = new SysVec4(0.5f, 0.5f, 0.5f, 1f);
                 SysVec4 color = isInfo || isExif ? grey : status switch
                 {
-                    ResultStatus.Success => new SysVec4(0.4f, 1f, 0.4f, 1f),
-                    ResultStatus.Skipped => new SysVec4(1f, 0.8f, 0.2f, 1f),
-                    ResultStatus.Failed  => new SysVec4(1f, 0.3f, 0.3f, 1f),
-                    _                   => new SysVec4(0.8f, 0.8f, 0.8f, 1f)
+                    ResultStatus.Success      => new SysVec4(0.4f, 1f, 0.4f, 1f),
+                    ResultStatus.DateInferred => new SysVec4(0.5f, 0.85f, 1f, 1f),   // cyan — file-date fallback
+                    ResultStatus.Skipped      => new SysVec4(1f, 0.8f, 0.2f, 1f),
+                    ResultStatus.Failed       => new SysVec4(1f, 0.3f, 0.3f, 1f),
+                    _                         => new SysVec4(0.8f, 0.8f, 0.8f, 1f)
                 };
 
                 ImGui.PushID(idx);
@@ -552,69 +617,6 @@ public class AppWindow : Win32GameWindow
         }
     }
 
-    private void BuildHistoryTab()
-    {
-        if (!_historyLoaded)
-        {
-            _history = _convLog?.GetRecent() ?? new();
-            _historyLoaded = true;
-        }
-
-        ImGui.Spacing();
-        ImGui.Text($"{_history.Count} entries");
-        ImGui.SameLine();
-        if (ImGui.Button("Refresh"))
-        {
-            _history = _convLog?.GetRecent() ?? new();
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Purge All"))
-        {
-            _convLog?.Purge();
-            _history = new();
-        }
-        ImGui.Separator();
-
-        float tableHeight = ImGui.GetContentRegionAvail().Y - 4;
-        if (ImGui.BeginTable("##history", 4,
-            ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg |
-            ImGuiTableFlags.ScrollY | ImGuiTableFlags.Resizable,
-            new SysVec2(0, tableHeight)))
-        {
-            ImGui.TableSetupScrollFreeze(0, 1);
-            ImGui.TableSetupColumn("Time",   ImGuiTableColumnFlags.WidthFixed,   140f);
-            ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthFixed,    50f);
-            ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch, 1f);
-            ImGui.TableSetupColumn("Output", ImGuiTableColumnFlags.WidthStretch, 1f);
-            ImGui.TableHeadersRow();
-
-            foreach (var e in _history)
-            {
-                ImGui.TableNextRow();
-
-                ImGui.TableSetColumnIndex(0);
-                ImGui.TextUnformatted(e.ConvertedAt);
-
-                ImGui.TableSetColumnIndex(1);
-                var (color, label) = e.Status switch
-                {
-                    "Success" => (new SysVec4(0.4f, 1f, 0.4f, 1f), "OK"),
-                    "Failed"  => (new SysVec4(1f, 0.3f, 0.3f, 1f), "FAIL"),
-                    _         => (new SysVec4(1f, 0.8f, 0.2f, 1f), "SKIP"),
-                };
-                ImGui.TextColored(color, label);
-
-                ImGui.TableSetColumnIndex(2);
-                ImGui.TextUnformatted(Path.GetFileName(e.SourcePath));
-
-                ImGui.TableSetColumnIndex(3);
-                ImGui.TextUnformatted(Path.GetFileName(e.OutputPath));
-            }
-
-            ImGui.EndTable();
-        }
-    }
-
     private void StartProcessing()
     {
         var source = ReadString(_sourceFolder);
@@ -640,7 +642,13 @@ public class AppWindow : Win32GameWindow
             ? _convLog?.GetProcessedSourcePaths()
             : null;
         if (alreadyProcessed?.Count > 0)
-            AddLog($"Skip-duplicates: {alreadyProcessed.Count} previously processed files on record.", null);
+            AddLog($"Skip (path): {alreadyProcessed.Count} previously processed files on record.", null);
+
+        var alreadyProcessedChecksums = _skipDuplicatesByHash
+            ? _convLog?.GetProcessedSourceChecksums()
+            : null;
+        if (alreadyProcessedChecksums?.Count > 0)
+            AddLog($"Skip (checksum): {alreadyProcessedChecksums.Count} content fingerprints on record.", null);
 
         var opts = new ProcessorOptions
         {
@@ -651,8 +659,15 @@ public class AppWindow : Win32GameWindow
             FolderMode        = _folderMode == 0 ? FileOrganizer.FolderMode.YearMonth : FileOrganizer.FolderMode.YearOnly,
             IncludeSubfolders = _includeSubfolders,
             InferMissingDates = _inferMissingDates,
+            UseDateFallback   = _useDateFallback,
             VideoPriority     = _videoPriority,
-            AlreadyProcessed  = alreadyProcessed,
+            OrganizeOnlyPhotos = _organizeOnlyPhotos,
+            OrganizeOnlyVideos = _organizeOnlyVideos,
+            ProcessImages      = _processImages,
+            ProcessVideos     = _processVideos,
+            RawSubfolderName  = ReadString(_rawSubfolderName),
+            AlreadyProcessed          = alreadyProcessed,
+            AlreadyProcessedChecksums = alreadyProcessedChecksums,
             Parallelism       = _coreCount
         };
 
@@ -662,12 +677,18 @@ public class AppWindow : Win32GameWindow
         lock (_logLock) _activeFiles.Clear();
         var ct = _cts.Token;
 
+        // Pre-run verification scan
+        if (_verifyOnStart)
+            TriggerVerification();
+
         Task.Run(async () =>
         {
+            bool completed = false;
             try
             {
                 await _processor.RunAsync(opts, ct);
                 AddLog("Done!", ResultStatus.Success);
+                completed = true;
             }
             catch (OperationCanceledException)
             {
@@ -683,7 +704,21 @@ public class AppWindow : Win32GameWindow
                 _isPaused = false;
                 lock (_logLock) _activeFiles.Clear();
             }
+
+            // Post-run verification — always runs when processing completes normally
+            if (completed)
+                TriggerVerification();
         }, ct);
+    }
+
+    private void TriggerVerification()
+    {
+        _showVerification = true;
+        _verificationPanel.TriggerScan(
+            ReadString(_sourceFolder),
+            ReadString(_exportFolder),
+            ReadString(_processedFolder),
+            ReadString(_failedFolder));
     }
 
     private void StopProcessing()
@@ -765,11 +800,14 @@ public class AppWindow : Win32GameWindow
             switch (result.Status)
             {
                 case ResultStatus.Success:
+                case ResultStatus.DateInferred:
                     switch (result.Entry.Category)
                     {
-                        case Models.FileCategory.Video: _stats.Videos++; break;
-                        case Models.FileCategory.Heic: _stats.Heic++; break;
-                        default: _stats.Photos++; break;
+                        case Models.FileCategory.Video:       _stats.Videos++; break;
+                        case Models.FileCategory.Heic:        _stats.Heic++;   break;
+                        case Models.FileCategory.Raw:         _stats.Raw++;    break;
+                        case Models.FileCategory.PassThrough: _stats.Other++;  break;
+                        default: _stats.Photos++; break;  // Image
                     }
                     break;
                 case ResultStatus.Skipped:
@@ -783,32 +821,37 @@ public class AppWindow : Win32GameWindow
 
         string prefix = result.Status switch
         {
-            ResultStatus.Success => result.Entry.DateIsUnknown ? "no date: " : "",
-            ResultStatus.Skipped => "skip: ",
-            ResultStatus.Failed => "ERR: ",
+            ResultStatus.Success      => result.Entry.DateIsUnknown ? "no date: " : "",
+            ResultStatus.DateInferred => "date~: ",
+            ResultStatus.Skipped      => "skip: ",
+            ResultStatus.Failed       => "ERR: ",
             _ => ""
         };
 
-        var displayStatus = result.Status == ResultStatus.Success &&
-                            (result.Entry.DateIsUnknown || result.Entry.DateIsEstimated)
-            ? ResultStatus.Skipped   // yellow — date was missing or estimated
-            : result.Status;
+        // DateInferred → cyan; estimated/unknown success → yellow; everything else as-is
+        var displayStatus = result.Status switch
+        {
+            ResultStatus.DateInferred => ResultStatus.DateInferred,
+            ResultStatus.Success when result.Entry.DateIsUnknown || result.Entry.DateIsEstimated
+                => ResultStatus.Skipped,  // yellow
+            _ => result.Status
+        };
 
         AddLog(prefix + result.Message, displayStatus);
 
         // Log real file outcomes to history DB.
         // Exclude: EXIF diagnostic events (internal, no real output path),
         //          already-processed skips (already in DB with Success status).
-        bool isExifDiag       = result.Message.StartsWith("[EXIF", StringComparison.Ordinal);
-        bool isAlreadySkipped = result.Message.StartsWith("Already processed:", StringComparison.Ordinal);
-        bool hasSourcePath    = !string.IsNullOrEmpty(result.Entry.SourcePath);
+        bool isExifDiag          = result.Message.StartsWith("[EXIF", StringComparison.Ordinal);
+        bool isAlreadySkipped    = result.Message.StartsWith("Already processed:", StringComparison.Ordinal);
+        bool isDuplicateSkipped  = result.Message.StartsWith("Duplicate (checksum)", StringComparison.Ordinal);
+        bool hasSourcePath       = !string.IsNullOrEmpty(result.Entry.SourcePath);
 
-        if (hasSourcePath && !isExifDiag && !isAlreadySkipped &&
-            result.Status is ResultStatus.Success or ResultStatus.Failed or ResultStatus.Skipped)
+        if (hasSourcePath && !isExifDiag && !isAlreadySkipped && !isDuplicateSkipped &&
+            result.Status is ResultStatus.Success or ResultStatus.DateInferred or ResultStatus.Failed or ResultStatus.Skipped)
         {
             _convLog?.Log(result.Entry.SourcePath, result.OutputPath,
-                          result.Entry.Category, result.Status);
-            _historyLoaded = false;
+                          result.Entry.Category, result.Status, result.SourceChecksum);
             _dbHistoryPanel.Invalidate();
         }
     }
@@ -907,9 +950,8 @@ public class AppWindow : Win32GameWindow
         uint nodeLeft, nodeRight;
         igDockBuilderSplitNode(nodeTop, ImGuiDir.Right, 0.45f, &nodeRight, &nodeLeft);
 
-        DockBuilderDockWindow("Processing",  nodeLeft);
-        DockBuilderDockWindow("History",     nodeRight);
-        DockBuilderDockWindow("DB History",  nodeRight);  // tabs with History
+        DockBuilderDockWindow("Processing",   nodeLeft);
+        DockBuilderDockWindow("History",      nodeRight);
         DockBuilderDockWindow("Verification", nodeBottom);
 
         igDockBuilderFinish(dockspaceId);
@@ -922,6 +964,16 @@ public class AppWindow : Win32GameWindow
             System.Diagnostics.Process.Start(
                 new System.Diagnostics.ProcessStartInfo("explorer.exe", $"\"{path}\"")
                 { UseShellExecute = true });
+        }
+        catch { /* non-fatal */ }
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch { /* non-fatal */ }
     }

@@ -6,7 +6,13 @@ namespace PhotoOrganizer.Core;
 
 public class MetadataService
 {
-    public FileEntry Resolve(string filePath)
+    /// <summary>
+    /// Resolves metadata for <paramref name="filePath"/>.
+    /// When <paramref name="useDateFallback"/> is <c>true</c>, files with no EXIF/sidecar date
+    /// get their date from the older of the filesystem created/modified timestamps instead of
+    /// being marked as unknown. The JSON sidecar timestamp is also compared when present.
+    /// </summary>
+    public FileEntry Resolve(string filePath, bool useDateFallback = false)
     {
         var entry = new FileEntry
         {
@@ -23,13 +29,38 @@ public class MetadataService
             TryReadJsonSidecar(entry);
             if (entry.ResolvedDate == null)
             {
-                entry.ResolvedDate = File.GetLastWriteTime(filePath);
-                entry.DateIsUnknown = true;
+                if (useDateFallback)
+                    ApplyFilesystemFallback(entry, filePath);
+                else
+                {
+                    entry.ResolvedDate = File.GetLastWriteTime(filePath);
+                    entry.DateIsUnknown = true;
+                }
             }
             return entry;
         }
 
-        // Images: try EXIF first
+        // Vector/non-raster PassThrough formats (SVG, AI, EPS, WMF) don't carry EXIF
+        // and rendering them via Magick just to find nothing would be slow.
+        var srcExtLower = Path.GetExtension(filePath).ToLowerInvariant();
+        if (entry.Category == FileCategory.PassThrough &&
+            srcExtLower is ".svg" or ".ai" or ".eps" or ".wmf")
+        {
+            TryReadJsonSidecar(entry);
+            if (entry.ResolvedDate == null)
+            {
+                if (useDateFallback)
+                    ApplyFilesystemFallback(entry, filePath);
+                else
+                {
+                    entry.ResolvedDate = File.GetLastWriteTime(filePath);
+                    entry.DateIsUnknown = true;
+                }
+            }
+            return entry;
+        }
+
+        // Images, HEIC, RAW, and GIF: try EXIF first
         try
         {
             using var image = new MagickImage(filePath);
@@ -80,11 +111,43 @@ public class MetadataService
         // Final fallback
         if (entry.ResolvedDate == null)
         {
-            entry.ResolvedDate = File.GetLastWriteTime(filePath);
-            entry.DateIsUnknown = true;
+            if (useDateFallback)
+                ApplyFilesystemFallback(entry, filePath);
+            else
+            {
+                entry.ResolvedDate = File.GetLastWriteTime(filePath);
+                entry.DateIsUnknown = true;
+            }
         }
 
         return entry;
+    }
+
+    /// <summary>
+    /// Sets <see cref="FileEntry.ResolvedDate"/> to the oldest available timestamp:
+    /// the minimum of filesystem created time, filesystem modified time, and any
+    /// date already found in a JSON sidecar. Marks the entry as <see cref="FileEntry.DateFromFilesystem"/>.
+    /// </summary>
+    private static void ApplyFilesystemFallback(FileEntry entry, string filePath)
+    {
+        var candidates = new List<DateTime>
+        {
+            File.GetCreationTime(filePath),
+            File.GetLastWriteTime(filePath)
+        };
+
+        // If a sidecar was read but returned no photoTakenTime, its GPS may still be set —
+        // that's fine. If it DID set a date, entry.ResolvedDate is already non-null and we
+        // never reach here. So here we can safely add it only if it wasn't already consumed.
+        // (No extra action needed — sidecar date is handled before we reach this method.)
+
+        var oldest = candidates.Where(d => d != default && d.Year > 1970).DefaultIfEmpty().Min();
+        if (oldest == default)
+            oldest = File.GetLastWriteTime(filePath); // absolute last resort
+
+        entry.ResolvedDate     = oldest;
+        entry.DateFromFilesystem = true;
+        entry.DateIsUnknown    = false;
     }
 
     /// <summary>
@@ -146,9 +209,15 @@ public class MetadataService
         var ext = Path.GetExtension(filePath).ToLowerInvariant();
         return ext switch
         {
-            ".jpg" or ".jpeg" or ".png" or ".tif" or ".tiff" => FileCategory.Image,
+            ".jpg" or ".jpeg" or ".png" or ".tif" or ".tiff" or
+            ".webp" or ".bmp" or ".avif" => FileCategory.Image,
             ".heic" or ".heif" => FileCategory.Heic,
-            ".mov" or ".mp4" or ".avi" or ".mkv" or ".3gp" => FileCategory.Video,
+            ".mov" or ".mp4" or ".avi" or ".mkv" or ".3gp" or
+            ".wmv" or ".m4v" or ".mts" or ".m2ts" or ".webm" or ".flv" or ".ts" => FileCategory.Video,
+            ".raw" or ".cr2" or ".cr3" or ".nef" or ".arw" or ".dng" or
+            ".orf" or ".rw2" or ".pef" or ".srw" or ".raf" or ".3fr" or
+            ".psd" or ".xcf" => FileCategory.Raw,
+            ".gif" or ".svg" or ".ai" or ".eps" or ".wmf" => FileCategory.PassThrough,
             _ => FileCategory.Unknown
         };
     }

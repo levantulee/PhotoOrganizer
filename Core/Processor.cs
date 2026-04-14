@@ -14,13 +14,30 @@ public class ProcessorOptions
     public int Parallelism { get; set; } = Math.Max(1, Environment.ProcessorCount - 1);
     public bool InferMissingDates { get; set; } = true;
     /// <summary>
+    /// When true, files without EXIF or sidecar dates get their date from the older of
+    /// the filesystem created/modified timestamps instead of being marked as unknown.
+    /// </summary>
+    public bool UseDateFallback { get; set; } = true;
+    /// <summary>
     /// When true, each video conversion pauses all image work, drains in-flight images,
     /// then runs FFmpeg with the full <see cref="Parallelism"/> thread count exclusively.
     /// When false, videos share the throttle with images (one video at a time via mutex).
     /// </summary>
     public bool VideoPriority { get; set; } = true;
+    /// <summary>When true, images/HEIC are copied as-is instead of being converted to PNG.</summary>
+    public bool OrganizeOnlyPhotos { get; set; } = false;
+    /// <summary>When true, videos are copied as-is instead of being re-encoded with FFmpeg.</summary>
+    public bool OrganizeOnlyVideos { get; set; } = false;
+    /// <summary>When false, image/HEIC/RAW/GIF/vector files are skipped.</summary>
+    public bool ProcessImages { get; set; } = true;
+    /// <summary>When false, video files are skipped.</summary>
+    public bool ProcessVideos { get; set; } = true;
+    /// <summary>Name of the subfolder within the export folder where RAW/PSD/XCF files are placed.</summary>
+    public string RawSubfolderName { get; set; } = "_RAW";
     /// <summary>Source paths already successfully processed; these files are skipped.</summary>
     public HashSet<string>? AlreadyProcessed { get; set; }
+    /// <summary>MD5 checksums of source files already successfully processed; enables content-based duplicate detection.</summary>
+    public HashSet<string>? AlreadyProcessedChecksums { get; set; }
 }
 
 public class Processor
@@ -100,12 +117,20 @@ public class Processor
                     _pauseGate.Wait(ct);
                     ct.ThrowIfCancellationRequested();
 
-                    var entry = _metadata.Resolve(file);
+                    var entry = _metadata.Resolve(file, opts.UseDateFallback);
 
                     if (entry.DateIsUnknown && opts.InferMissingDates)
-                        await TryInferDateFromFolderAsync(entry, ct);
+                        await TryInferDateFromFolderAsync(entry, opts.UseDateFallback, ct);
 
-                    if (entry.Category == FileCategory.Video)
+                    // Use video-exclusive concurrency only for real FFmpeg conversions.
+                    // Organize-only mode and disabled-video runs skip the exclusivity overhead.
+                    bool useVideoExclusive = entry.Category == FileCategory.Video
+                                            && opts.ProcessVideos
+                                            && !opts.OrganizeOnlyVideos
+                                            && !Path.GetExtension(entry.SourcePath)
+                                                    .Equals(".mp4", StringComparison.OrdinalIgnoreCase);
+
+                    if (useVideoExclusive)
                     {
                         if (opts.VideoPriority)
                         {
@@ -135,7 +160,7 @@ public class Processor
                     else
                     {
                         // In priority mode, block if a video is currently converting.
-                        if (opts.VideoPriority)
+                        if (opts.VideoPriority && !opts.OrganizeOnlyVideos)
                             _videoPauseGate.Wait(ct);
 
                         Interlocked.Increment(ref _activeImageCount);
@@ -273,7 +298,7 @@ public class Processor
     /// onto <paramref name="entry"/> if one was found.
     /// Subsequent calls for the same folder use the cached result — no double work.
     /// </summary>
-    private async ValueTask TryInferDateFromFolderAsync(FileEntry entry, CancellationToken ct)
+    private async ValueTask TryInferDateFromFolderAsync(FileEntry entry, bool useDateFallback, CancellationToken ct)
     {
         var folder = Path.GetDirectoryName(entry.SourcePath) ?? "";
 
@@ -293,7 +318,7 @@ public class Processor
             {
                 var folderEntries = Directory.EnumerateFiles(folder, "*.*", SearchOption.TopDirectoryOnly)
                     .Where(f => !Path.GetExtension(f).Equals(".json", StringComparison.OrdinalIgnoreCase))
-                    .Select(f => _metadata.Resolve(f))
+                    .Select(f => _metadata.Resolve(f, useDateFallback))
                     .ToList();
 
                 MetadataService.InferMissingDates(folderEntries);
@@ -333,12 +358,25 @@ public class Processor
         var result = new ProcessResult { Entry = entry };
         try
         {
-            // Skip if already processed successfully in a previous run
+            // Skip if already processed successfully in a previous run (path-based)
             if (opts.AlreadyProcessed?.Contains(filePath) == true)
             {
                 result.Status  = ResultStatus.Skipped;
                 result.Message = $"Already processed: {Path.GetFileName(filePath)}";
                 return result;
+            }
+
+            // Compute source checksum for content-based duplicate detection (if enabled)
+            if (opts.AlreadyProcessedChecksums != null)
+            {
+                string hash = IntegrityChecker.ComputeMd5(filePath);
+                result.SourceChecksum = hash;
+                if (opts.AlreadyProcessedChecksums.Contains(hash))
+                {
+                    result.Status  = ResultStatus.Skipped;
+                    result.Message = $"Duplicate (checksum): {Path.GetFileName(filePath)}";
+                    return result;
+                }
             }
 
             if (entry.Category == FileCategory.Unknown)
@@ -349,39 +387,95 @@ public class Processor
                 return result;
             }
 
-            // 2. Compute output path
+            // Filter by type selection
             bool isVideo = entry.Category == FileCategory.Video;
-            string outputPath = _organizer.ComputeOutputPath(entry, opts.ExportFolder, opts.FolderMode, isVideo);
+            if (isVideo && !opts.ProcessVideos)
+            {
+                result.Status  = ResultStatus.Skipped;
+                result.Message = $"Skipped (videos disabled): {Path.GetFileName(filePath)}";
+                return result;
+            }
+            if (!isVideo && !opts.ProcessImages)
+            {
+                result.Status  = ResultStatus.Skipped;
+                result.Message = $"Skipped (images disabled): {Path.GetFileName(filePath)}";
+                return result;
+            }
+
+            // 2. Compute output path
+            string outputPath = _organizer.ComputeOutputPath(
+                entry, opts.ExportFolder, opts.FolderMode,
+                opts.OrganizeOnlyPhotos, opts.OrganizeOnlyVideos, opts.RawSubfolderName);
             result.OutputPath = outputPath;
 
             // 3. Convert / copy
             if (isVideo)
             {
-                if (!VideoConverter.IsFfmpegAvailable)
+                if (opts.OrganizeOnlyVideos)
                 {
-                    result.Status = ResultStatus.Skipped;
-                    result.Message = "FFmpeg not available — skipped video";
-                    return result;
+                    // Organize-only: copy video as-is, no FFmpeg
+                    File.Copy(filePath, outputPath, overwrite: false);
+                    result.WasConverted = false;
+                    if (!IntegrityChecker.VerifyImageCopy(filePath, outputPath))
+                        throw new Exception("Video copy integrity check failed.");
                 }
-                await _video.ConvertToMp4Async(filePath, outputPath, entry.ResolvedDate, opts.Parallelism, ct);
-                result.WasConverted = true;
+                else
+                {
+                    var srcVideoExt = Path.GetExtension(filePath).ToLowerInvariant();
+                    if (srcVideoExt == ".mp4")
+                    {
+                        // Already MP4 — copy directly, no re-encode needed
+                        File.Copy(filePath, outputPath, overwrite: false);
+                        result.WasConverted = false;
+                        if (!IntegrityChecker.VerifyImageCopy(filePath, outputPath))
+                            throw new Exception("MP4 copy integrity check failed.");
+                    }
+                    else
+                    {
+                        if (!VideoConverter.IsFfmpegAvailable)
+                        {
+                            result.Status = ResultStatus.Skipped;
+                            result.Message = "FFmpeg not available — skipped video";
+                            return result;
+                        }
+                        await _video.ConvertToMp4Async(filePath, outputPath, entry.ResolvedDate, opts.Parallelism, ct);
+                        result.WasConverted = true;
 
-                // Verify
-                if (!await IntegrityChecker.VerifyVideoAsync(outputPath))
-                    throw new Exception("Video integrity check failed.");
+                        if (!await IntegrityChecker.VerifyVideoAsync(outputPath))
+                            throw new Exception("Video integrity check failed.");
+                    }
+                }
+            }
+            else if (entry.Category is FileCategory.Raw or FileCategory.PassThrough)
+            {
+                // RAW and PassThrough are always copied as-is (no conversion)
+                File.Copy(filePath, outputPath, overwrite: false);
+                result.WasConverted = false;
+                if (!IntegrityChecker.VerifyImageCopy(filePath, outputPath))
+                    throw new Exception("File copy integrity check failed.");
             }
             else
             {
+                // Image or HEIC
                 var srcExt = Path.GetExtension(filePath).ToLowerInvariant();
 
                 if (srcExt == ".png")
                 {
-                    // PNG → PNG: straight copy, no re-encoding
+                    // Already PNG — copy directly, no re-encoding needed
                     File.Copy(filePath, outputPath, overwrite: false);
                     result.WasConverted = false;
 
-                    if (!IntegrityChecker.VerifyConvertedImage(outputPath))
+                    if (!IntegrityChecker.VerifyImageCopy(filePath, outputPath))
                         throw new Exception("PNG copy integrity check failed.");
+                }
+                else if (opts.OrganizeOnlyPhotos)
+                {
+                    // Organize-only: copy as-is, preserve original extension
+                    File.Copy(filePath, outputPath, overwrite: false);
+                    result.WasConverted = false;
+
+                    if (!IntegrityChecker.VerifyImageCopy(filePath, outputPath))
+                        throw new Exception("Image copy integrity check failed.");
                 }
                 else
                 {
@@ -463,8 +557,10 @@ public class Processor
             if (!string.IsNullOrEmpty(entry.JsonSidecarPath))
                 MoveToProcessed(entry.JsonSidecarPath, opts.SourceFolder, opts.ProcessedFolder);
 
-            result.Status = ResultStatus.Success;
-            result.Message = BuildSuccessMessage(entry, outputPath);
+            result.Status = entry.DateFromFilesystem
+                ? ResultStatus.DateInferred
+                : ResultStatus.Success;
+            result.Message = BuildSuccessMessage(entry, outputPath, result.WasConverted);
         }
         catch (OperationCanceledException)
         {
@@ -479,20 +575,22 @@ public class Processor
         return result;
     }
 
-    private static string BuildSuccessMessage(FileEntry entry, string outputPath)
+    private static string BuildSuccessMessage(FileEntry entry, string outputPath, bool wasConverted)
     {
         var outName = Path.GetFileName(outputPath);
         var srcName = Path.GetFileName(entry.SourcePath);
         var srcExtLower = Path.GetExtension(entry.SourcePath).ToLowerInvariant();
         string suffix = entry.Category switch
         {
-            FileCategory.Heic => " (heic→png)",
-            FileCategory.Video => " (conv)",
-            FileCategory.Image when srcExtLower is ".tif" or ".tiff" => " (tiff→png)",
+            FileCategory.Heic when wasConverted => " (heic→png)",
+            FileCategory.Video when wasConverted => " (conv)",
+            FileCategory.Image when wasConverted && srcExtLower is ".tif" or ".tiff" => " (tiff→png)",
+            FileCategory.Raw => " (raw)",
             _ => ""
         };
-        string dateTag = entry.DateIsUnknown   ? " ⚠ no date"   :
-                         entry.DateIsEstimated ? " ~ est. date" : "";
+        string dateTag = entry.DateIsUnknown      ? " ⚠ no date"    :
+                         entry.DateFromFilesystem ? " ~ file date"  :
+                         entry.DateIsEstimated    ? " ~ est. date"  : "";
         return $"{outName}  ←  {srcName}{suffix}{dateTag}";
     }
 

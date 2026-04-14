@@ -23,8 +23,8 @@ public sealed class DbHistoryPanel
     private int  _statusFilter = 0; // 0=All, 1=Success, 2=Failed, 3=Skipped
     private byte[] _textFilter = new byte[256];
 
-    private static readonly string[] StatusLabels = { "All", "Success", "Failed", "Skipped" };
-    private static readonly string?[] StatusValues = { null, "Success", "Failed", "Skipped" };
+    private static readonly string[] StatusLabels = { "All", "Success", "Date inferred", "Failed", "Skipped" };
+    private static readonly string?[] StatusValues = { null, "Success", "DateInferred", "Failed", "Skipped" };
 
     public void SetLog(ConversionLog? log) => _log = log;
 
@@ -33,7 +33,7 @@ public sealed class DbHistoryPanel
         if (!show) return;
 
         ImGui.SetNextWindowSize(new SysVec2(1000, 600), ImGuiCond.FirstUseEver);
-        if (!ImGui.Begin("DB History", ref show)) { ImGui.End(); return; }
+        if (!ImGui.Begin("History", ref show)) { ImGui.End(); return; }
 
         // ── Toolbar ───────────────────────────────────────────────────────────
         ImGui.SetNextItemWidth(100);
@@ -48,6 +48,13 @@ public sealed class DbHistoryPanel
         ImGui.SameLine();
         if (ImGui.Button("Refresh"))
             Reload();
+
+        ImGui.SameLine();
+        if (ImGui.Button("Purge All"))
+        {
+            _log?.Purge();
+            Reload();
+        }
 
         ImGui.SameLine();
         ImGui.Text($"Total: {_totalCount}");
@@ -116,9 +123,10 @@ public sealed class DbHistoryPanel
                 ImGui.TableSetColumnIndex(2);
                 var (color, label) = e.Status switch
                 {
-                    "Success" => (new SysVec4(0.4f, 1f, 0.4f, 1f), "OK"),
-                    "Failed"  => (new SysVec4(1f, 0.3f, 0.3f, 1f), "FAIL"),
-                    _         => (new SysVec4(1f, 0.8f, 0.2f, 1f), "SKIP"),
+                    "Success"      => (new SysVec4(0.4f, 1f, 0.4f, 1f), "OK"),
+                    "DateInferred" => (new SysVec4(0.5f, 0.85f, 1f, 1f), "DATE~"),
+                    "Failed"       => (new SysVec4(1f, 0.3f, 0.3f, 1f), "FAIL"),
+                    _              => (new SysVec4(1f, 0.8f, 0.2f, 1f), "SKIP"),
                 };
                 ImGui.TextColored(color, label);
 

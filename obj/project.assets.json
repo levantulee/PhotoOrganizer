@@ -1930,6 +1930,17 @@
   },
   "logs": [
     {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-26qp-ffjh-2x4v",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
+      ]
+    },
+    {
       "code": "NU1901",
       "level": "Warning",
       "warningLevel": 1,
@@ -2304,6 +2315,17 @@
       ]
     },
     {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-cr67-pvmx-2pp2",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
+      ]
+    },
+    {
       "code": "NU1901",
       "level": "Warning",
       "warningLevel": 1,
@@ -2330,6 +2352,17 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-fwqw-2x5x-w566",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-fwvm-ggf6-2p4x",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0-windows",
@@ -2656,6 +2689,17 @@
       ]
     },
     {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-v67w-737x-v2c9",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
+      ]
+    },
+    {
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
@@ -2770,6 +2814,17 @@
       "level": "Warning",
       "warningLevel": 1,
       "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-wrhr-rf8j-r842",
+      "libraryId": "Magick.NET-Q16-AnyCPU",
+      "targetGraphs": [
+        "net8.0-windows",
+        "net8.0-windows/win-x64"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Magick.NET-Q16-AnyCPU' 13.10.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9h5-r9v2-vcww",
       "libraryId": "Magick.NET-Q16-AnyCPU",
       "targetGraphs": [
         "net8.0-windows",
